@@ -1,0 +1,1409 @@
+---
+title: "EiA TZ GCF Prioritization"
+author: "Peter Steward, Todd Rosenstock, Ani Ghosh"
+date: "09/06/2022"
+output: html_document
+runtime: shiny
+---
+  
+<style type="text/css">
+.main-container {
+max-width: 1800px;
+margin-left: auto;
+margin-right: auto;
+}
+</style>
+
+```{r setup, include=FALSE}
+# ***!!!IMPORTANT!!!*** YOU NEED TO CHANGE THE LINE BELOW TO BE THE PATH WHERE YOU HAVE SAVED THIS PROJECT TO (USE "/" NOT "\")
+knitr::opts_knit$set(root.dir = "D:/eia_TZ_climate_tool")
+# knitr::opts_knit$set(root.dir = "INSERT FULL FILE PATH HERE")
+knitr::opts_chunk$set(echo = TRUE)
+options(scipen = 999)
+```
+
+```{r Load packages,echo=F,message=F,warning=F}
+
+if(!require("pacman", character.only = TRUE)){install.packages("pacman",dependencies = T)}
+
+required.packages <- c("data.table",
+                       "devtools",
+                       "DT",
+                       "MetBrewer",
+                       "mgsub",
+                       "miceadds",
+                       "rgdal",
+                       "stringr",
+                       "terra",
+                       "viridis",
+                       "wesanderson"
+                       )
+
+pacman::p_load(char=required.packages,install = T,character.only = T)
+```
+
+## EiA Tanzania GCF Proposal Climate Prioritization Tool {.tabset .tabset-fade .tabset-pills}
+
+```{r Hazards - load meta data and class breaks,echo=F}
+hazard_dir<-"Data/atlas_hazards"
+hazards<-c("NDD","NTx40","HSM_NTx35","HSH_max","THI_max","NDWS","TAI","NDWL0")
+haz_meta<-data.table::fread("./Data/atlas_hazards/metadata.csv")
+haz_class<-fread("./Data/atlas_hazards/classes.csv")
+
+Scenarios<-c("ssp245","ssp585")
+Times<-c("2021_2040","2041_2060")
+Scenarios<-rbind(data.table(Scenario="historic",Time="historic"),data.table(expand.grid(Scenario=Scenarios,Time=Times)))
+```
+
+**Define hazard thresholds** - use the top row to set the threshold, the middle row the direction (`<` lower or '>' higher than the threshold), and the bottom row to rename the hazard. Note renaming hazards requires recalculation of combined hazards and therefore takes time. When renaming variables **DO NOT** use underscores `_` or the reserved words `mean`,`meanclass`,`prop`,`propclass`,`exceedmean`, `exceedmax`.  
+
+The `Reccurence threshold` is used when classifying hazards based on the proportions of seasons a hazard is present in a time series of data. If set to 0.5 then a hazard is considered present if it is present in more than 50% of seasons.
+
+**HSH_max** = `r haz_meta[grepl("HSH_max",file.filename),dataset.desc]`  
+**HSM_NTx35** = `r haz_meta[grepl("HSM_NTx35",file.filename),dataset.desc]`  
+**NDD** = `r haz_meta[grepl("NDD",file.filename),dataset.desc]`  
+**NDWL0** = `r haz_meta[grepl("NDWL0",file.filename),dataset.desc]`  
+**NDWS** = `r haz_meta[grepl("NDWS",file.filename),dataset.desc]`  
+**NTx40** = `r haz_meta[grepl("NTx40",file.filename),dataset.desc]`  
+**TAI** = `r haz_meta[grepl("TAI",file.filename),dataset.desc]`  
+**THI_max** = `r haz_meta[grepl("THI_max",file.filename),dataset.desc]`
+
+:::: {style="display: flex;"}
+::: {}
+```{r Hazard Thresholds 1,echo=F}
+numericInput(inputId="H1_Thresh", 
+               label=hazards[1], 
+               value=haz_class[index_name==gsub("_max","",hazards[1]) & description=="Moderate",lower_lim],
+               min=0,
+               max=100,
+               step=1,
+               width="100px")
+```
+:::
+:::{}
+```{r Hazard Thresholds 2,echo=F}
+numericInput(inputId="H2_Thresh", 
+               label=hazards[2], 
+               value=haz_class[index_name==gsub("_max","",hazards[2]) & description=="Moderate",lower_lim],
+               min=0,
+               max=100,
+               step=1,
+               width="100px")
+```
+:::
+:::{}
+```{r Hazard Thresholds 3,echo=F}    
+numericInput(inputId="H3_Thresh", 
+               label=hazards[3], 
+               value=haz_class[index_name==gsub("_max","",hazards[3]) & description=="Moderate",lower_lim],
+               min=0,
+               max=100,
+               step=1,
+               width="100px")
+```
+:::
+:::{}
+```{r Hazard Thresholds 4,echo=F}      
+numericInput(inputId="H4_Thresh", 
+               label=hazards[4], 
+               value=haz_class[index_name==gsub("_max","",hazards[4]) & description=="Moderate",lower_lim],
+               min=0,
+               max=100,
+               step=1,
+               width="100px")
+```
+:::
+:::{}
+```{r Hazard Thresholds 5,echo=F}        
+numericInput(inputId="H5_Thresh", 
+               label=hazards[5], 
+               value=haz_class[index_name==gsub("_max","",hazards[5]) & description=="Moderate",lower_lim],
+               min=0,
+               max=100,
+               step=1,
+               width="100px")
+```
+:::
+:::{}
+```{r Hazard Thresholds 6,echo=F}          
+numericInput(inputId="H6_Thresh", 
+               label=hazards[6], 
+               value=haz_class[index_name==gsub("_max","",hazards[6]) & description=="Moderate",lower_lim],
+               min=0,
+               max=100,
+               step=1,
+               width="100px")
+```
+:::
+:::{}
+```{r Hazard Thresholds 7,echo=F}          
+numericInput(inputId="H7_Thresh", 
+               label=hazards[7], 
+               value=haz_class[index_name==gsub("_max","",hazards[7]) & description=="Moderate",lower_lim],
+               min=0,
+               max=100,
+               step=1,
+               width="100px")
+```
+:::
+:::{}
+```{r Hazard Thresholds 8,echo=F}         
+numericInput(inputId="H8_Thresh", 
+               label=hazards[8], 
+               value=haz_class[index_name==gsub("_max","",hazards[8]) & description=="Moderate",lower_lim],
+               min=0,
+               max=100,
+               step=1,
+               width="100px")
+```
+:::
+:::{}
+```{r Hazard Thresholds PropThreshold,echo=F}
+numericInput(inputId="PropThreshold",
+           label="Recurrence threshold", 
+           value=0.5,
+           min=0,
+           max=0.1,
+           step=1,
+           width="200px")
+```
+:::
+::::
+
+:::: {style="display: flex;"}
+::: {}
+```{r Hazard Directions 1,echo=F}
+selectInput(inputId="H1_Direction", 
+              label=NULL,
+              choices = c("<",">"),
+              selected = ">",
+              multiple = F, 
+              width="100px")
+```
+:::
+:::{}
+```{r Hazard Directions 2,echo=F}
+selectInput(inputId="H2_Direction", 
+              label=NULL,
+              choices = c("<",">"),
+              selected = ">",
+              multiple = F, 
+              width="100px")
+```
+:::
+:::{}
+```{r Hazard Directions 3,echo=F}
+selectInput(inputId="H3_Direction", 
+              label=NULL,
+              choices = c("<",">"),
+              selected = ">",
+              multiple = F, 
+              width="100px")
+```
+:::
+:::{}
+```{r Hazard Directions 4,echo=F}
+selectInput(inputId="H4_Direction", 
+              label=NULL,
+              choices = c("<",">"),
+              selected = ">",
+              multiple = F, 
+              width="100px")
+```
+:::
+:::{}
+```{r Hazard Directions 5,echo=F}
+selectInput(inputId="H5_Direction", 
+              label=NULL,
+              choices = c("<",">"),
+              selected = ">",
+              multiple = F, 
+              width="100px")
+```
+:::
+:::{}
+```{r Hazard Directions 6,echo=F} 
+selectInput(inputId="H6_Direction", 
+              label=NULL,
+              choices = c("<",">"),
+              selected = ">",
+              multiple = F, 
+              width="100px")
+```
+:::
+:::{}
+```{r Hazard Directions 7,echo=F} 
+selectInput(inputId="H7_Direction", 
+              label=NULL,
+              choices = c("<",">"),
+              selected = ">",
+              multiple = F, 
+              width="100px")
+```
+:::
+:::{}
+```{r Hazard Directions 8,echo=F}  
+selectInput(inputId="H8_Direction", 
+              label=NULL,
+              choices = c("<",">"),
+              selected = ">",
+              multiple = F, 
+              width="100px")
+```
+:::
+::::
+
+:::: {style="display: flex;"}
+::: {}
+```{r Hazard names 1,echo=F}
+textInput(inputId="H1_Name", 
+              label=NULL,
+              value = hazards[1],
+              width="100px")
+```
+:::
+:::{}
+```{r Hazard names 2,echo=F}
+textInput(inputId="H2_Name", 
+              label=NULL,
+              value = hazards[2],
+              width="100px")
+```
+:::
+:::{}
+```{r Hazard names 3,echo=F}
+textInput(inputId="H3_Name", 
+              label=NULL,
+              value = hazards[3],
+              width="100px")
+```
+:::
+:::{}
+```{r Hazard names 4,echo=F}
+textInput(inputId="H4_Name", 
+              label=NULL,
+              value = hazards[4],
+              width="100px")
+```
+:::
+:::{}
+```{r Hazard names 5,echo=F}
+textInput(inputId="H5_Name", 
+              label=NULL,
+              value = hazards[5],
+              width="100px")
+```
+:::
+:::{}
+```{r Hazard names 6,echo=F} 
+textInput(inputId="H6_Name", 
+              label=NULL,
+              value = hazards[6],
+              width="100px")
+```
+:::
+:::{}
+```{r Hazard names 7,echo=F} 
+textInput(inputId="H7_Name", 
+              label=NULL,
+              value = hazards[7],
+              width="100px")
+```
+:::
+:::{}
+```{r Hazard names 8,echo=F}  
+textInput(inputId="H8_Name", 
+              label=NULL,
+              value = hazards[8],
+              width="100px")
+```
+:::
+::::
+
+Here you can subset the climate variables used in the analysis, this is particularly relevant when considering the intersection of multiple hazards (see `Analysis: Combined hazards` tab.
+```{r Hazard - Variables,echo=F}
+haz_names<-reactive({
+  c(input$H1_Name,input$H2_Name,input$H3_Name,input$H4_Name,input$H5_Name,input$H6_Name,input$H7_Name,input$H8_Name)
+  })
+
+renderUI({
+  checkboxGroupInput(inputId="Analysis_Vars", 
+              label="Hazards to include in analysis",
+              choices = haz_names(),
+              selected = haz_names()[c(1,4,7)],
+              inline=T)
+})
+```
+
+### Data
+Load admin areas:
+```{r Dataset - load regions}
+Geographies<-terra::vect("./Data/admin_units/gadm41_TZA_2.shp")
+renderPlot({terra::plot(Geographies)})
+```
+Load cropland extent data (source: https://glad.umd.edu/dataset/croplands)
+```{r Dataset - Load global crop land extent}
+Cropland<-terra::crop(terra::mask(terra::rast("Data/Global_cropland_3km_2019.tif"),Geographies),Geographies)
+
+# Convert % to km2
+CroplandSize<-terra::cellSize(Cropland,unit="km")
+Cropland<-(Cropland/100)*CroplandSize
+
+names(Cropland)<-"Cropland_Area"
+renderPlot({terra::plot(Cropland)})
+
+```
+Load human population data:
+```{r Dataset - Load population}
+TotalPop<-terra::crop(terra::mask(terra::rast("Data/cell5m_ruralpop_2020_v3.tif"),Geographies),Geographies)
+names(TotalPop)<-"TotalPop"
+renderPlot({terra::plot(TotalPop)})
+```
+Load mapSPAM data:
+```{r Dataset - mapSPAM}
+SPAM<-terra::rast("Data/mapspam/mapspam_crops.tif")
+SPAM<-terra::mask(terra::crop(SPAM,Geographies),Geographies)
+renderPlot({terra::plot(SPAM)})
+```
+
+
+### View Analysis Code
+This section shows the code that powers the hazard classification and data extraction. It is currently undocumented and a general user need not concern themselves with this section.
+```{r set Save directory}
+SaveDir<-"Data/Analysis"
+if(!dir.exists(SaveDir)){
+  dir.create(SaveDir)
+}
+
+PlotDir<-"Plots"
+if(!dir.exists(PlotDir)){
+  dir.create(PlotDir)
+}
+
+```
+
+```{r Dataset - Load MapSPAM,eval=T}
+Codes<-data.table::fread("Data/mapspam/SpamCodes.csv")
+
+# This chunk creates tables that rank crops according to their MapSPAM area within regions. It is not currently used in this script but is useful when select which crops to disply in waffle plots
+
+if(!file.exists("Data/mapspam/SPAMareas1.csv")){
+
+# Run SPAMbyRegion.R to generate the file below
+MinArea<-100 #ha
+# Read in summary of crop areas by region, remove crops with small areas
+ 
+
+GeogRast<-terra::rasterize(Geographies,SPAM,field="NAME_2")
+
+
+SPAMareas2<-data.table(terra::zonal(SPAM,GeogRast,"sum",na.rm=T))
+SPAMareas2<-data.table::melt(SPAMareas2,id.vars = "NAME_2",variable.name = "Crop",value.name = "Area")
+SPAMareas2<-merge(SPAMareas2,data.table(values(Geographies))[,list(NAME_1,NAME_2)],by="NAME_2",all.x=T)
+
+setnames(SPAMareas2,c("NAME_2","NAME_1"),c("Admin2","Admin1"))
+
+
+SPAMareas1<-SPAMareas2[order(Admin2,Area,decreasing = T)
+               ][,Rank:=1:.N,by=Admin2
+                 ][Area==0|is.na(Area),Rank:=NA
+                   ][,Label:=paste(c(Admin2,Crop,Rank),collapse = "-"),by=list(Admin2,Crop,Rank)]
+
+SPAMareas1<-SPAMareas1[,list(Area=sum(Area,na.rm = T)),by=list(Admin1,Crop)
+                ][order(Admin1,Area,decreasing = T)
+                  ][,Rank:=1:.N,by=Admin1
+                    ][Area==0|is.na(Area),Rank:=NA
+                      ][,Label:=paste(c(Admin1,Crop,Rank),collapse = "-"),by=list(Admin1,Crop,Rank)]
+
+data.table::fwrite(SPAMareas2,file="Data/mapspam/SPAMareas2.csv")
+data.table::fwrite(SPAMareas1,file="Data/mapspam/SPAMareas1.csv")
+
+}else{
+SPAMareas2<-data.table::fread("Data/mapspam/SPAMareas2.csv")
+SPAMareas1<-data.table::fread("Data/mapspam/SPAMareas1.csv")
+}
+
+
+```
+Create functions to detect and classify hazards:
+```{r Analysis - Create functions to classify hazards 1}
+
+ThreshFun<-function(Data,Threshold,Direction){
+  if(Direction==">"){
+  sum(Data>Threshold)/length(Data)
+  }else{
+  sum(Data<Threshold)/length(Data)
+  }
+}
+
+ClassSimple<-function(Data,Threshold,Direction){
+  if(Direction==">"){
+  as.integer(Data>Threshold)
+  }else{
+  as.integer(Data<Threshold)
+  }
+}
+
+Exceedance<-function(Data,Threshold,Direction,Function){
+  if(!all(is.na(Data))){
+  if(Direction==">"){
+    Data<-Data[Data>Threshold]
+  }else{
+   Data<-Data[Data<Threshold]
+  }
+    
+  if(length(Data)>0){
+    Data<-abs(Data-Threshold)
+  
+  if(Function=="mean"){
+    Data<-mean(Data,na.rm=T)
+  }
+  
+  if(Function=="max"){
+    Data<-max(Data,na.rm=T)
+  }
+    }else{
+      Data<-0
+    }
+    
+  }else{
+    Data<-NA
+  }
+  return(Data)
+
+}
+
+Infinite2NA<-function(Data){
+  Data[is.infinite(Data)]<-NA
+  return(Data)
+}
+
+ClassifyFun<-function(Data,VAR,Threshold,Direction,PropThreshold,PropTDir){
+
+  Variable<-terra::app(Data,Infinite2NA)
+  VarMean<- terra::app(Variable,mean,na.rm=T)
+  VarMClass<-VarMean
+  VarMClass[]<-as.integer(ClassSimple(Data=VarMClass[],Threshold,Direction))
+  VarProp<- terra::app(Variable,ThreshFun,Threshold,Direction)
+  VarPClass<-VarProp
+  VarPClass[]<-as.integer(ClassSimple(Data=VarPClass[],PropThreshold,PropTDir))
+  
+  VarExceedMean<-terra::app(Variable,Exceedance,Threshold,Direction,Function="mean")
+  VarExceedMax<-terra::app(Variable,Exceedance,Threshold,Direction,Function="max")
+
+  Var<-c(VarMean,VarMClass,VarProp,VarPClass,VarExceedMean,VarExceedMax)
+  names(Var)<-paste0(VAR,c("_mean","_meanclass","_prop","_propclass","_exceedmean","_exceedmax"))
+  return(Var)
+}
+
+ClassifyHazards<-function(Data){
+    
+    # Generate binary classification of hazards
+    X<-sum(terra::rast(lapply(1:terra::nlyr(Data),FUN=function(i){
+      X<-Data[[i]]
+      X[which(X[]==1)]<-10^(i-1)
+      X
+    })))
+    
+    # Translate binary sequence to label
+    labels<-names(Data)
+    values<-unique(values(X))
+    values<-values[!(is.na(values)|is.nan(values))]
+    values<-str_pad(values, length(labels), pad = "0")
+    
+    
+    labels_new<-unlist(lapply(values,FUN=function(val){
+      val<-stringi::stri_reverse(val)
+      pos<-str_locate_all(val,"1")[[1]][,1]
+      paste(labels[pos],collapse="+")
+    }))
+    
+    labels<-data.table(values=as.numeric(values),labels=labels_new)[,Nhaz:=0
+                                                                    ][labels!="",Nhaz:=1+stringr::str_count(labels,"[+]")
+                                                                      ][order(Nhaz,labels)][,N:=0:(.N-1)]
+    
+    labels[Nhaz==0,labels:="None"][,labels:=gsub("_meanclass|_propclass","",labels)]
+    
+    # Recode raster to integer values and add labels
+    X<-subst(X,labels[,values],labels[,N])
+    
+    levels(X)<-labels[,list(N,labels)]
+    
+    Classes<-labels[,list(values,labels,N)]
+    colnames(Classes)<-c("Code","Hazard","Recode")
+    
+    names(X)<-""
+    
+    X<-list(RastReclass=X,Classes=Classes)
+    
+    return(X)
+}
+
+HazardWrapper<-function(Thresholds,FileName,SaveDir,PropThreshold,PropTDir,hazard_dir,Scenarios){
+  Files<-list.files(hazard_dir,".tif",full.names = T)
+
+  Hazards<-lapply(1:nrow(Scenarios),FUN=function(j){
+      save_file<-paste0(SaveDir,"/Haz-",Scenarios$Scenario[j],"-",Scenarios$Time[j],"-",FileName,".tif")
+      THRESH<-Thresholds
+        if(!file.exists(save_file)){
+    for(i in 1:nrow(THRESH)){
+      if(F){
+      # Display progress
+      cat('\r                                                                                                                                          ')
+      cat('\r',paste0(i," | ",j))
+      flush.console()
+      }
+      
+      Data<-terra::rast(Files[grepl(Scenarios$Scenario[j],Files) & grepl(Scenarios$Time[j],Files) & grepl(THRESH$Variable[i],Files)])
+      
+      X<-ClassifyFun(Data=Data,
+                  VAR=THRESH[i,Variable],
+                  Threshold=THRESH[i,Threshold],
+                  Direction=THRESH[i,Direction],
+                  PropThreshold=PropThreshold,
+                  PropTDir=PropTDir)
+      if(i==1){
+        Hazards<-X
+      }else{
+        Hazards<-c(Hazards,X)
+      }
+    }
+    
+    terra::writeRaster(Hazards,filename=save_file,overwrite=T)
+    Hazards
+        }else{
+          terra::rast(save_file)
+        }
+  })
+
+  
+  Hazards<-lapply(1:length(Hazards),FUN=function(i){
+    HAZ<-Hazards[[i]]
+    names(HAZ)<-mgsub::mgsub(names(HAZ),Thresholds[,paste0(Variable,"_")],Thresholds[,paste0(Renamed,"_")])
+    HAZ
+  })
+  
+  names(Hazards)<-paste0(Scenarios$Scenario,"-",Scenarios$Time)
+  
+  return(Hazards)
+}
+
+HazCombWrapper<-function(Hazards,SaveDir,Scenarios,FileName,SelectedHaz){
+  scenario_names<-paste0(Scenarios$Scenario,"-",Scenarios$Time)
+# Mean
+if(!file.exists(filename=paste0(SaveDir,"/CombMean-",scenario_names[1],"-",FileName,".tif"))){
+HazCombMean<-lapply(1:nrow(Scenarios),FUN=function(j){
+  
+  X<-grep("_meanclass",names(Hazards[[j]]),value=T)
+  X<-X[grepl(paste0(SelectedHaz,collapse = "|"),X)]
+  
+  ClassifyHazards(Data=Hazards[[j]][[X]])
+})
+names(HazCombMean)<-scenario_names
+
+for(i in 1:length(scenario_names)){
+  terra::writeRaster(HazCombMean[[scenario_names[i]]][["RastReclass"]],filename=paste0(SaveDir,"/CombMean-",scenario_names[i],"-",FileName,".tif"),overwrite=T)
+  fwrite(HazCombMean[[scenario_names[i]]][["Classes"]],file=paste0(SaveDir,"/CombMean-",scenario_names[i],"-",FileName,".csv"))
+}
+
+}else{
+  
+  HazCombMean<-lapply(scenario_names,FUN=function(scenario_name){
+    list(
+      RastReclass=terra::rast(paste0(SaveDir,"/CombMean-",scenario_name,"-",FileName,".tif")),
+      Classes=data.table::fread(paste0(SaveDir,"/CombMean-",scenario_name,"-",FileName,".csv"))
+    )
+  })
+  
+  names(HazCombMean)<-scenario_names
+}
+
+# Prop
+if(!file.exists(filename=paste0(SaveDir,"/CombProp-",scenario_names[1],"-",FileName,".tif"))){
+  HazCombProp<-lapply(1:length(scenario_names),FUN=function(j){
+    X<-grep("_propclass",names(Hazards[[j]]),value=T)
+    X<-X[grepl(paste0(SelectedHaz,collapse = "|"),X)]
+  
+    ClassifyHazards(Data=Hazards[[j]][[X]])
+
+  })
+  names(HazCombProp)<-scenario_names
+  
+  for(i in 1:length(scenario_names)){
+    terra::writeRaster(HazCombProp[[scenario_names[i]]][["RastReclass"]],filename=paste0(SaveDir,"/CombProp-",scenario_names[i],"-",FileName,".tif"),overwrite=T)
+    fwrite(HazCombProp[[scenario_names[i]]][["Classes"]],file=paste0(SaveDir,"/CombProp-",scenario_names[i],"-",FileName,".csv"))
+  }
+
+}else{
+  
+  HazCombProp<-lapply(scenario_names,FUN=function(scenario_name){
+    list(
+      RastReclass=terra::rast(paste0(SaveDir,"/CombProp-",scenario_name,"-",FileName,".tif")),
+      Classes=data.table::fread(paste0(SaveDir,"/CombProp-",scenario_name,"-",FileName,".csv"))
+    )
+  })
+  
+  names(HazCombProp)<-scenario_names
+}
+
+HazComb<-list(MeanHaz=HazCombMean,PropHaz=HazCombProp)
+
+return(HazComb)
+}
+
+#Create a function to intersect the combined hazard layer with MapSPAM data summarized by regions:
+
+ExtractHaz<-function(Regions,Reg.Field,Hazard,HazTab,SPAM,Cropland,TotalPop){
+  
+  SPAM <- terra::mask(terra::crop(SPAM,Regions),Regions)
+  Hazard<-terra::mask(terra::crop(Hazard,Regions),Regions)
+  Cropland <- terra::mask(terra::crop(Cropland,Regions),Regions)
+  TotalPop<-terra::mask(terra::crop(TotalPop,Regions),Regions)
+  
+  Hazard<-terra::resample(Hazard,SPAM,method="near")
+  TotalPop<-terra::resample(TotalPop,SPAM,method="sum")
+  Cropland<-terra::resample(Cropland,SPAM,method="sum")
+  
+  # Mask human population by cropland
+  # TotalPop<-terra::mask(TotalPop,Cropland)
+  
+  HazardMask<-Hazard
+  N<-which(levels(HazardMask)[[1]]=="None")-1
+  if(length(N)>0){
+    HazardMask[HazardMask==N]<-NA
+  }
+  MaskedPop<-terra::mask(TotalPop,HazardMask)
+  names(MaskedPop)<-"AtRiskPop"
+
+  Regions$Code<-1:length(Regions)*100
+  REG<-terra::rasterize(Regions,Hazard,field="Code")
+  HAZ<-Hazard+REG
+  names(HAZ)<-"Hazard"
+  
+  X<-data.table(zonal(SPAM,HAZ,fun=sum,na.rm=T))
+  X[,Region:=floor(Hazard/100)*100]
+  X[,Hazard:=Hazard-Region]
+  X[,Region:=terra::values(Regions)[match(X$Region,Regions$Code),Reg.Field]]
+  X[,Hazard:=HazTab[match(X$Hazard,Recode),Hazard]]
+  X<-data.table::melt(X,id.vars = c("Hazard","Region"),value.name = "Area",variable.name = "Crop")
+
+  Y<-data.table(zonal(c(TotalPop,MaskedPop,Cropland),HAZ,fun=sum,na.rm=T))
+  Y[,Region:=floor(Hazard/100)*100]
+  Y[,Hazard:=Hazard-Region]
+  Y[,Region:=terra::values(Regions)[match(Y$Region,Regions$Code),Reg.Field]]
+  Y[,Hazard:=HazTab[match(Y$Hazard,Recode),Hazard]]
+  
+  REG2<-terra::rasterize(Regions,Hazard,field=Reg.Field)
+  Areas<-data.table(zonal(cellSize(REG2,unit="km"),REG2,sum,na.rm=T))
+  setnames(Areas,Reg.Field,"Region")
+  
+  Y<-Y[,list(Cropland.Area=round(sum(Cropland_Area)),
+             Pop=round(sum(TotalPop,na.rm=T)),
+             PopRisk=round(sum(AtRiskPop,na.rm = T))),by=list(Region,Hazard)]
+  
+  Y[,Total.Area:=Areas[match(Y$Region,Region),area]]
+       
+  Y<-Y[,Pop:=sum(Pop),by=Region
+       ][,PopRisk:=sum(PopRisk),by=Region
+         ][,Cropland.Perc:=round(100*Cropland.Area/Total.Area,1)
+           ][!is.na(Hazard)
+             ][,Cropland.Area:=NULL
+               ][,Crop.Perc:=sum(Cropland.Perc),by=Region
+                 ][,PopRiskPerc:=round(100*PopRisk/Pop,1)
+                   ][,Pop:=round(Pop/10^6,1)
+                     ][,PopRisk:=round(PopRisk/10^6,1)]
+  
+  Y<-dcast(Y,Region+Total.Area+Crop.Perc+Pop+PopRiskPerc+PopRisk~Hazard,value.var = "Cropland.Perc")[Total.Area!=0]
+
+  return(list(SPAM=X,CropPop=Y))
+
+}
+
+HazXRegionWrapper<-function(SaveDir,FileName,SPAM,Geographies,HazComb,Cropland,TotalPop){
+SaveFile<-paste0(SaveDir,"/Tables-",FileName,".RData")
+if(!file.exists(SaveFile)){
+
+Geog1<-terra::aggregate(Geographies,"NAME_1")
+
+HazXRegion<-lapply(1:length(HazComb),FUN=function(j){
+  
+  Data<-lapply(1:length(HazComb[[j]]),FUN=function(i){
+  HazExt1<-ExtractHaz(Regions=Geog1,
+                     Reg.Field="NAME_1",
+                     Hazard=HazComb[[j]][[i]]$RastReclass,
+                     HazTab=HazComb[[j]][[i]]$Classes,
+                     SPAM=SPAM,
+                     Cropland=Cropland,
+                     TotalPop=TotalPop)
+  
+  HazExt2<-ExtractHaz(Regions=Geographies,
+             Reg.Field="NAME_2",
+             Hazard=HazComb[[j]][[i]]$RastReclass,
+             HazTab=HazComb[[j]][[i]]$Classes,
+             SPAM=SPAM,
+             Cropland=Cropland,
+             TotalPop=TotalPop)
+  
+  list(Admin1=HazExt1,Admin2=HazExt2)
+})
+
+  names(Data)<-names(HazComb[[j]])
+  Data
+})
+
+names(HazXRegion)<-names(HazComb)
+
+save(HazXRegion,file=SaveFile)
+}else{
+  HazXRegion<-miceadds::load.Rdata2(SaveFile)
+}
+  return(HazXRegion)
+}
+```
+Create table of thresholds and filenames:
+```{r Analysis - Create thresholds table and filenames}
+Thresholds<-reactive({
+  data.table(
+  Variable=hazards,
+  Renamed=haz_names(),
+  Threshold=c(input$H1_Thresh,input$H2_Thresh,input$H3_Thresh,input$H4_Thresh,input$H5_Thresh,input$H6_Thresh,input$H7_Thresh,input$H8_Thresh),
+  Direction=c(input$H1_Direction,input$H2_Direction,input$H3_Direction,input$H4_Direction,input$H5_Direction,input$H6_Direction,input$H7_Direction,input$H8_Direction)
+)
+})
+
+renderPrint({Thresholds()})
+
+FileName<-reactive({
+  gsub("<","L",gsub(">","G",paste(unlist(Thresholds()[,!"Renamed"]),collapse="")))
+})
+
+FileName2<-reactive({
+  gsub("<","L",gsub(">","G",paste(unlist(Thresholds()[Renamed %in% input$Analysis_Vars,!"Renamed"]),collapse="")))
+})
+
+renderPrint({FileName2()})
+
+```
+Detect and classify hazards:
+```{r Analysis - Classify hazards}
+
+
+Hazards<-reactive({
+  HazardWrapper(Thresholds=Thresholds(),
+                FileName=FileName(),
+                SaveDir=SaveDir,
+                PropThreshold=input$PropThreshold,
+                PropTDir=">",
+                hazard_dir=hazard_dir,
+                Scenarios=Scenarios)
+})
+
+renderPrint({names(Hazards())})
+renderPrint({names(Hazards()[[1]])})
+```
+
+Combine hazards into a single layer:
+```{r Analysis -  Combine hazards}
+HazComb<-reactive({
+  HazCombWrapper(Hazards=Hazards(),
+                 SaveDir=SaveDir,
+                 Scenarios=Scenarios,
+                 FileName=FileName2(),
+                 SelectedHaz = input$Analysis_Vars)
+  })
+
+renderPrint({names(HazComb())})
+renderPrint({names(HazComb()[[1]])})
+renderPrint({names(HazComb()[[1]][[1]])})
+```
+
+
+Summarize hazards by region and MapSPAM data:
+```{r Analysis - Summarize hazards by region and crop}
+HazXRegion<-reactive({
+  HazXRegionWrapper(SaveDir=SaveDir,
+                    FileName=FileName2(),
+                    SPAM=terra::rast("Data/mapspam/mapspam_crops.tif"),
+                    Cropland=Cropland,
+                    TotalPop=TotalPop,
+                    Geographies=Geographies,
+                    HazComb=HazComb())
+})
+
+renderPrint({names(HazXRegion())})
+```
+
+### Results {.tabset .tabset-fade .tabset-pills}
+Here you can select which hazards, scenarios  and geographies to display. If you change the **`Admin level`** from `District` to `State` then results are presented aggregated to state level, but note that any deselected districts will still be subtracted from state level data. Selecting the hazards to display here does not affect the calculation or display of combined hazards.
+
+:::: {style="display: flex;"}
+::: {}
+```{r Plot - Variables,echo=F}
+renderUI({
+  checkboxGroupInput(inputId="Plot_Vars", 
+              label="Display hazards                        ",
+              choices = input$Analysis_Vars,
+              selected= input$Analysis_Vars, 
+              inline=T)
+})
+```
+:::
+:::{}
+```{r Season -  Choose scenario, echo=F}
+  selectInput(inputId="Scenario", 
+              label="Scenario",
+              choices =  paste0(Scenarios$Scenario,"-",Scenarios$Time),
+              selected =  paste0(Scenarios$Scenario,"-",Scenarios$Time)[1],
+              multiple = F, 
+              width="100px")
+
+```
+:::
+:::{}
+```{r Geography -  Choose admin level, echo=F}
+  selectInput(inputId="AdminLevel1", 
+              label="Admin level",
+              choices = c("Region","District"),
+              selected = "District",
+              multiple = F, 
+              width="100px")
+
+AdminLevel<-reactive({
+  if(input$AdminLevel1=="Region"){
+    "Admin1"
+  }else{
+    "Admin2"
+  }
+})
+```
+:::
+:::{}
+```{r Geography - Choose admin1s, echo=F}
+  selectInput(inputId="Admin1_Selection", 
+              label="Select regions",
+              choices = c("All","None",""),
+              selected = "All",
+              multiple = F, 
+              width="100px")
+
+
+```
+:::
+:::{}
+```{r Geography - Choose states, echo=F}
+renderUI({
+  checkboxGroupInput(inputId="Admin1", 
+                     label="Select regions",
+                     choices = sort(unique(Geographies$NAME_1)),
+                     selected = if(input$Admin1_Selection=="All"){
+                         sort(unique(Geographies$NAME_1))
+                         }else{
+                           if(input$Admin1_Selection=="None"){
+                             NULL
+                           }
+                         },
+                     inline=T)
+})
+```
+:::
+::::
+
+:::: {style="display: flex;"}
+::: {}
+```{r Geography - Choose district 1, echo=F}
+conditionalPanel(
+  condition = "input.AdminLevel1 == 'District'",
+  selectInput(inputId="Selection", 
+              label="Select districts",
+              choices = c("All","None",""),
+              selected = "All",
+              multiple = F, 
+              width="100px")
+)
+
+```
+:::
+:::{}
+```{r Geography - Choose districts 2, echo=F}
+conditionalPanel(
+ condition = "input.AdminLevel1 == 'District'",
+  renderUI({
+    checkboxGroupInput(inputId="Admin2", 
+                       label="",
+                       choices = sort(unique(Geographies$NAME_2[Geographies$NAME_1 %in% input$Admin1])),
+                       selected = if(input$Selection=="All"){
+                         sort(unique(Geographies$NAME_2[Geographies$NAME_1 %in% input$Admin1]))
+                         }else{
+                           if(input$Selection=="None"){
+                             NULL
+                           }
+                         },
+                       inline=T)
+  })
+)
+
+
+```
+:::
+::::
+
+
+**Plotting Parameters** - here you can adjust some plot features such as colour palette, text size, and plot size.
+
+:::: {style="display: flex;"}
+:::{}
+```{r Plot - Palette,echo=F,eval=T}
+
+Viridis<-data.table(Source="viridis",Palette=c("magma","inferno","plasma","viridis","cividis","rocket","mako","turbo"))
+Met<-data.table(Source="MetBrewer",Palette=names(MetBrewer::MetPalettes))
+Wes<-data.table(Source="wesanderson",Palette=names(wesanderson::wes_palettes))
+
+Palettes<-rbind(Viridis,Met)
+
+  selectInput(inputId="Palette", 
+              label="Palette",
+              choices = Palettes[,sort(Palette)],
+              selected="turbo", 
+              multiple = F, 
+              width="150px")
+  
+PalFun<-function(PalName,N,Names) {
+Viridis<-data.table(Source="viridis",Palette=c("magma","inferno","plasma","viridis","cividis","rocket","mako","turbo"))
+Met<-data.table(Source="MetBrewer",Palette=names(MetBrewer::MetPalettes))
+Palettes<-rbind(Viridis,Met)
+    
+ if(Palettes[Palette==PalName,Source]=="viridis"){
+    PAL<-viridis::viridis(N,option=PalName)
+ }
+
+if(Palettes[Palette==PalName,Source]=="MetBrewer"){
+     PAL<-MetBrewer::met.brewer(name=PalName, n=N, type="continuous")
+}
+
+  if(Palettes[Palette==PalName,Source]=="Wes"){
+     PAL<-wesanderson::wes_palette(name=PalName, n=N, type="continuous")
+  }
+names(PAL)<-Names
+
+return(PAL)
+}
+
+```
+:::
+:::{}
+```{r Plot - Text Size, echo=F}
+numericInput(inputId="TextSize",
+             label="Text Size",
+             value=1,
+             min=1,
+             max=5,
+             step=0.1,
+             width="80px")
+```
+:::
+:::{}
+```{r Plot - LegPos,echo=F}
+  selectInput(inputId="LegPos", 
+              label="Legend position",
+              choices = c("bottom", "right", "top", "left"),
+              selected="bottom", 
+              multiple = F, 
+              width="120px")
+```
+:::
+:::{}
+```{r Plot - Border width , echo=F}
+numericInput(inputId="borderwidth",
+             label="Border width",
+             value=1,
+             min=0.1,
+             max=5,
+             step=0.25,
+             width="120px")
+```
+:::
+:::{}
+```{r Plot - Base width,echo=F}
+  numericInput(inputId="PlotBaseWidth", 
+              label="Plot width (px)",
+              value = 1200,
+              min=100, 
+              max=5000,
+              step = 100,
+              width="150px")
+```
+:::
+:::{}
+```{r  Plot - Adjust height, echo=F}
+numericInput(inputId="Plot.Height",
+             label="Adjust height",
+             value=0.5,
+             min=0.1,
+             max=3,
+             step=0.1, 
+             width="120px")
+```
+:::
+:::{}
+```{r Plot - Adjust width , echo=F}
+numericInput(inputId="Plot.Width",
+             label="Adjust width",
+             value=1,
+             min=0.1,
+             max=3,
+             step=0.1,
+             width="120px")
+```
+:::
+::::
+
+```{r Plot - Create bar height and width functions, echo=F}
+  Plot.Height <- function(){input$PlotBaseWidth*input$Plot.Height}
+  Plot.Width <- function(){input$PlotBaseWidth*input$Plot.Width}
+```
+
+```{r Set admin areas for extraction, echo=F}
+SubGeog<-reactive({
+    if(input$AdminLevel1=="District"){
+      Geographies[Geographies$NAME_2 %in% input$Admin2,]
+    }else{
+      Geographies[Geographies$NAME_1 %in% input$Admin1,]
+    }
+})
+```
+
+```{r Plot - prepare data for plotting hazards,echo=F}
+
+PlotHazards<-reactive({
+  terra::mask(terra::crop(Hazards()[[input$Scenario]],SubGeog()),SubGeog())
+})
+```
+
+```{r Plot - prepare data for plotting hazards 2,echo=F}
+HazPalCombMean<-reactive({PalFun(PalName=input$Palette,
+                      N=nrow(HazComb()[["MeanHaz"]][[input$Scenario]][["Classes"]]),
+                      Names=HazComb()[["MeanHaz"]][[input$Scenario]][["Classes"]])
+})
+
+HazPalCombProp<-reactive({PalFun(PalName=input$Palette,
+                      N=nrow(HazComb()[["PropHaz"]][[input$Scenario]][["Classes"]]),
+                      Names=HazComb()[["PropHaz"]][[input$Scenario]][["Classes"]])
+})
+
+addGeog1<-function(){terra::plot(terra::aggregate(Geographies[Geographies$NAME_2 %in% input$Admin2,],by="NAME_1"),add=T,border="black",lwd=input$borderwidth)}
+addGeog2<-function(){terra::plot(Geographies[Geographies$NAME_2 %in% input$Admin2,],add=T,border="black",lwd=input$borderwidth)}
+
+
+```
+
+#### Severity and recurrance {.tabset .tabset-fade .tabset-pills}
+##### Long-term means
+Long-term historical means for climate variables within selected season
+```{r Plot - Means,echo=F}
+renderPlot({
+terra::plot(PlotHazards()[[paste0(input$Plot_Vars,"_mean")]],
+            fun=if(input$AdminLevel1=="District"){addGeog2}else{addGeog1},
+            cex.main = input$TextSize*1.2,
+            col=PalFun(PalName=input$Palette,
+                      N=50,
+                      Names=1:50)
+)
+},height=Plot.Height, width=Plot.Width)
+```
+
+Long-term historical means classified according to hazard thresholds (0 = hazard absent, 1 = hazard present)
+```{r Plot - Meanclass,echo=F}
+renderPlot({
+terra::plot(PlotHazards()[[paste0(input$Plot_Vars,"_meanclass")]],
+            fun=if(input$AdminLevel1=="District"){addGeog2}else{addGeog1},
+            cex.main = input$TextSize*1.2
+)
+},height=Plot.Height, width=Plot.Width)
+```
+
+##### Recurrence
+Proportion of seasons where hazard is present within selected scenario (we will call this layer recurrence risk)
+```{r Plot - Prop,echo=F}
+renderPlot({
+terra::plot(PlotHazards()[[paste0(input$Plot_Vars,"_prop")]],
+            fun=if(input$AdminLevel1=="District"){addGeog2}else{addGeog1},
+            cex.main = input$TextSize*1.2,
+            col=PalFun(PalName=input$Palette,
+                      N=50,
+                      Names=1:50)
+)
+},height=Plot.Height, width=Plot.Width)
+```
+
+Recurrence risk for any one hazard being present
+```{r Plot - Prop Class Any, echo=F}
+AnyFun<-function(X){
+1-prod(1-X)
+}
+
+renderPlot({
+terra::plot(terra::app(PlotHazards()[[paste0(input$Plot_Vars,"_prop")]],AnyFun),
+            fun=if(input$AdminLevel1=="District"){addGeog2}else{addGeog1},
+            cex.main = input$TextSize*1.2,
+            col=PalFun(PalName=input$Palette,
+                      N=50,
+                      Names=1:50)
+)
+},height=Plot.Height, width=Plot.Width)
+
+```
+
+Hazards classified according to recurrence risk threshold (0 = hazard absent, 1 = hazard present)
+```{r Plot - Prop class,echo=F}
+renderPlot({
+terra::plot(PlotHazards()[[paste0(input$Plot_Vars,"_propclass")]],
+            fun=if(input$AdminLevel1=="District"){addGeog2}else{addGeog1},
+            cex.main = input$TextSize*1.2
+)
+},height=Plot.Height, width=Plot.Width)
+
+```
+
+##### Severity
+Hazard severity as the mean exceedance of the hazard threshold value for each climate variable (exceedance = abs(Value-Threshold)). Calculated only for those season where the hazard threshold is exceeded.
+```{r Plot - Exceedance mean,echo=F}
+renderPlot({
+terra::plot(PlotHazards()[[paste0(input$Plot_Vars,"_exceedmean")]],
+            fun=if(input$AdminLevel1=="District"){addGeog2}else{addGeog1},
+            cex.main = input$TextSize*1.2,
+            col=PalFun(PalName=input$Palette,
+                      N=50,
+                      Names=1:50)
+)
+},height=Plot.Height, width=Plot.Width)
+```
+
+As above, but the maximum exceedance of the hazard threshold for a climate variable.
+```{r Plot - Exceedance max,echo=F}
+renderPlot({
+terra::plot(PlotHazards()[[paste0(input$Plot_Vars,"_exceedmax")]],
+            fun=if(input$AdminLevel1=="District"){addGeog2}else{addGeog1},
+            cex.main = input$TextSize*1.2,
+            col=PalFun(PalName=input$Palette,
+                      N=50,
+                      Names=1:50)
+)
+},height=Plot.Height, width=Plot.Width)
+```
+
+##### Severity & recurrence
+```{r Table - Severity x Risk function, echo=F}
+SxRtabFun<-function(Hazards,Plot_Vars,Geographies,AdminLevel){
+  Hazards<-Hazards[[paste0(rep(Plot_Vars,each=4),c("_prop","_mean","_exceedmean","_exceedmax"))]]
+  Field<-if(AdminLevel=="Admin1"){"NAME_1"}else{"NAME_2"}
+  Geographies<-terra::rasterize(Geographies,Hazards,field=Field)
+  Data<-data.table(zonal(Hazards,Geographies,fun=mean,na.rm=T))
+  Data<-melt(Data,id.vars=Field)
+  Data[,Hazard:=tstrsplit(variable,"_",keep=1)][,Variable:=tstrsplit(variable,"_",keep=2)][,variable:=NULL]
+  
+  colnames(Data)[grepl("NAME_",colnames(Data))]<-"Geography"
+  
+  Data<-dcast(Data,Geography+Hazard~Variable,value.var="value")
+
+  
+  
+  return(Data)
+}
+```
+
+```{r Table - Severity x Risk calculation, echo=F}
+SxRtab<-reactive({
+  SxRtabFun(Hazards=PlotHazards(),
+            Plot_Vars=input$Plot_Vars,
+            Geographies=Geographies[Geographies$NAME_2 %in% input$Admin2,],
+            AdminLevel=AdminLevel())
+})
+```
+
+This table present the intersection of hazard severity and recurrence for the selected geographic area. The `mean` column is the long-term average value of the climate variable. Severity is represented by the mean  and max exceedance of hazard threshold (`exceedmean` and `exceedmax` columns). Recurrence is represented by the proportion of seasons containing a hazard (`prop` column). Variables are averaged across all the values within an area.
+```{r Table - Severity x Risk DT, echo=F}
+renderDT({
+  datatable(dplyr::mutate_if(SxRtab(),is.numeric,~round(.,2)),
+            caption="Hazard recurrance x severity (means by geography)",
+            extensions = 'Buttons',
+            filter = "top",
+            options = list(dom = 'Blfrtip',
+                           buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                           lengthMenu = list(c(10,25,50,-1),c(10,25,50,"All"))))
+  
+})
+
+```
+
+#### Combined hazards
+This plot shows the intersection of climate hazards as classified using long-term historical means.
+```{r Plot - Combinations mean,echo=F}
+CombPlot<-reactive({ terra::mask(
+      terra::crop(x = droplevels(HazComb()[["MeanHaz"]][[input$Scenario]][["RastReclass"]]), Geographies[Geographies$NAME_2 %in% input$Admin2,]),
+      Geographies[Geographies$NAME_2 %in% input$Admin2,]
+      )})
+
+
+renderPlot({
+terra::plot(CombPlot(),
+            fun=if(input$AdminLevel1=="District"){addGeog2}else{addGeog1},
+            cex.main = input$TextSize*1.2,
+            col=PalFun(PalName=input$Palette,
+                      N=nrow(levels(CombPlot())[[1]]),
+                      Names=levels(CombPlot()))
+)
+},height=Plot.Height, width=Plot.Width)
+```
+
+This plot shows the intersection of climate hazards as classified using the recurrence risk threshold.
+```{r Plot - Combinations prop,echo=F}
+CombPlotProp<-reactive({ terra::mask(
+      terra::crop(x = HazComb()[["PropHaz"]][[input$Scenario]][["RastReclass"]], Geographies[Geographies$NAME_2 %in% input$Admin2,]),
+      Geographies[Geographies$NAME_2 %in% input$Admin2,]
+      )})
+
+
+renderPlot({
+terra::plot(CombPlotProp(),
+            fun=if(input$AdminLevel1=="District"){addGeog2}else{addGeog1},
+            cex.main = input$TextSize*1.2,
+            col=PalFun(PalName=input$Palette,
+                      N=nrow(levels(CombPlot())[[1]]),
+                      Names=levels(CombPlot()))
+)
+},height=Plot.Height, width=Plot.Width)
+```
+
+#### Risk x Exposure {.tabset .tabset-fade .tabset-pills}
+This section takes the combined hazards and intersects them with spatial datasets that represent exposure, namely human rural population and the harvested area of different crops (source:MapSPAM). You can choose the shareholding method which determines the combined hazards layer used for intersection. *It is possible to choose other MapSPAM crop statistics such as total production or value of production, but this functionality is not yet implemented*.
+
+```{r Table -  Method, echo=F}
+selectInput(inputId="HazMeth1",
+             label="Thresholding method", 
+            choices = c("Long-term avg","Recurrence"),
+            selected = "Long-term avg",
+            multiple = F, 
+            width="150px")
+
+HazMeth<-reactive({
+  if(input$HazMeth1=="Recurrence"){
+    "PropHaz"
+  }else{
+    "MeanHaz"
+  }
+})
+```
+
+##### Cropland exposure
+This table shows the percentage of a geographic area that is exposed to different hazards and hazard combinations. The table presents the total area in km2 of a geography (`Total.Area`), the percentage of the area that is cropland (`Crop.Perc` column), the human rural population in millions within this cropland area (`Pop` column), the human population in millions and as a percentage exposed to any hazard (`Pop.Risk` and `Pop.Perc` columns), and the percentage of the total area that is exposed to specific hazards (columns named with hazards). Note hazards are masked to cropland extent and sum to percentage of the area that is cropland.
+```{r Analysis - Subset data PopCrop,echo=F}
+
+PrepTable<-function(Data,Method,Scenario,AdminLevel,Geographies,A1,A2,Table){
+  Data<-Data[[Method]][[Scenario]][[AdminLevel]][[Table]]
+  if(AdminLevel=="Admin2"){
+    setnames(Data,"Region","Admin2",skip_absent=T)
+    Geog<-data.table(terra::values(Geographies))[,list(NAME_1,NAME_2)]
+    names(Geog)<-c("Admin1","Admin2")
+    Data<-merge(Data,Geog,by="Admin2",all.x=T)
+    Data<-Data[Admin2 %in% A2]
+  }else{
+    setnames(Data,"Region","Admin1",skip_absent=T)
+    Data<-Data[Admin1 %in% A1]
+    if("Hazard" %in% colnames(Data)){
+      Data<-Data[,list(Area=sum(Area,na.rm=T)),by=list(Admin1,Crop,Hazard)]
+    }
+  }
+  
+  Data
+  
+}
+
+DT_Data<-reactive({
+  PrepTable(Data=HazXRegion(),
+                   Method=HazMeth(),
+                   Scenario=input$Scenario,
+                   AdminLevel=AdminLevel(),
+                   Geographies=Geographies,
+                   A1=input$Admin1,
+                   A2=input$Admin2,
+                   Table="CropPop")
+})
+```
+
+```{r Analysis - Display DT PopCrop,echo=F}
+renderDT({
+  datatable(DT_Data()[,Total.Area:=round(Total.Area,0)],
+            caption="Cropland hazards by geography",
+            extensions = 'Buttons',
+            filter = "top",
+            options = list(dom = 'Blfrtip',
+                           buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                           lengthMenu = list(c(10,25,50,-1),c(10,25,50,"All"))))
+  
+})
+
+```
+
+##### Hazard x crop x geography
+For each geography this table shows the mapSPAM harvested area of a crop (km2) that is exposed to a hazard or combination of hazards. Harvested area is the total crop area harvested within a year, if a location is harvested multiple times then the area is counted multiple times.
+```{r Table - SPAM subset data,echo=F}
+DT_Data2<-reactive({
+  PrepTable(Data=HazXRegion(),
+                   Method=HazMeth(),
+                   Scenario=input$Scenario,
+                   AdminLevel=AdminLevel(),
+                   Geographies=Geographies,
+                   A1=input$Admin1,
+                   A2=input$Admin2,
+                   Table="SPAM")[,Area:=round(Area/100,2)]
+})
+
+renderDT({
+  datatable(DT_Data2())
+})
+```
+
+:::: {style="display: flex;"}
+:::{}
+```{r Table - SPAM Make wide,echo=F}
+  selectInput(inputId="MakeWide", 
+              label="Make table wide?",
+              choices = c("Yes", "No"),
+              selected="Yes", 
+              multiple = F, 
+              width="180px")
+```
+:::
+:::{}
+```{r Table -  Min Area, echo=F}
+numericInput(inputId="MinArea",
+             label="Min crop area (km2)", 
+             value=50,
+             min=0,
+             max=100000,
+             step=50,
+             width="200px") 
+```
+:::
+::::
+
+```{r Table - SPAM display DT,echo=F}
+renderDT({
+  datatable(if(input$MakeWide=="Yes"){
+    if(AdminLevel()=="Admin2"){
+      dcast(DT_Data2()[Area>input$MinArea,Area:=round(Area,0)],Admin1+Admin2+Crop~Hazard,value.var="Area")
+    }else{
+      dcast(DT_Data2()[Area>input$MinArea,Area:=round(Area,0)],Admin1+Crop~Hazard,value.var="Area") 
+    }
+    }else{
+      DT_Data2()[,Area:=round(Area,0)]},
+            caption="Cropland hazards by geography",
+            extensions = 'Buttons',
+            filter = "top",
+            options = list(dom = 'Blfrtip',
+                           buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                           lengthMenu = list(c(10,25,50,-1),c(10,25,50,"All")))) 
+  
+})
+
+```
