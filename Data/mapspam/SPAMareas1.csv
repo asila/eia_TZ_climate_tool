@@ -1,0 +1,311 @@
+Admin1,Crop,Area,Rank,Label
+Tanga,total _vop,257509990.591309,1,Tanga-9-1
+Tanga,cereals _vop,68023725.4404297,2,Tanga-4-2
+Tanga,pulses _vop,40998416.3882599,3,Tanga-6-3
+Tanga,bean _vop,37813055.7565918,4,Tanga-2-4
+Tanga,cassava _vop,34086464.3002472,5,Tanga-3-5
+Tanga,banana_and_plantain _vop,33288824.6745758,6,Tanga-1-6
+Tanga,rice _vop,16802452.4858704,7,Tanga-7-7
+Tanga,groundnut _vop,865869.902973175,8,Tanga-5-8
+Tanga,sorghum _vop,792460.398296356,9,Tanga-8-9
+Tanga,wheat _vop,49482.0998077393,10,Tanga-10-10
+Tabora,total _vop,445126931.665405,1,Tabora-9-1
+Tabora,cereals _vop,101307278.672325,2,Tabora-4-2
+Tabora,groundnut _vop,99039253.3234901,3,Tabora-5-3
+Tabora,rice _vop,46841693.7580261,4,Tabora-7-4
+Tabora,pulses _vop,21307496.3794708,5,Tabora-6-5
+Tabora,bean _vop,16347117.4778519,6,Tabora-2-6
+Tabora,cassava _vop,16239497.9046631,7,Tabora-3-7
+Tabora,sorghum _vop,4964489.10590935,8,Tabora-8-8
+Tabora,banana_and_plantain _vop,14429.2998046875,9,Tabora-1-9
+Tabora,wheat _vop,0,,Tabora-10-NA
+Songwe,total _vop,205773938.632629,1,Songwe-9-1
+Songwe,cereals _vop,76777235.975296,2,Songwe-4-2
+Songwe,pulses _vop,40717553.5066452,3,Songwe-6-3
+Songwe,bean _vop,40099572.682991,4,Songwe-2-4
+Songwe,rice _vop,15106238.8023891,5,Songwe-7-5
+Songwe,groundnut _vop,13043659.9172363,6,Songwe-5-6
+Songwe,banana_and_plantain _vop,6027813.34038162,7,Songwe-1-7
+Songwe,cassava _vop,5213444.4937439,8,Songwe-3-8
+Songwe,sorghum _vop,5052080.88972473,9,Songwe-8-9
+Songwe,wheat _vop,74823.1008310318,10,Songwe-10-10
+Singida,total _vop,242163241.081986,1,Singida-9-1
+Singida,cereals _vop,49686290.1065674,2,Singida-4-2
+Singida,pulses _vop,36106622.5126801,3,Singida-6-3
+Singida,bean _vop,15732151.7359238,4,Singida-2-4
+Singida,sorghum _vop,14514750.893959,5,Singida-8-5
+Singida,cassava _vop,11077875.2071114,6,Singida-3-6
+Singida,groundnut _vop,6901653.09527588,7,Singida-5-7
+Singida,rice _vop,1680371.59949493,8,Singida-7-8
+Singida,wheat _vop,1199.19995117188,9,Singida-10-9
+Singida,banana_and_plantain _vop,168.899993896484,10,Singida-1-10
+Simiyu,total _vop,239908127.664887,1,Simiyu-9-1
+Simiyu,cereals _vop,77568061.0421944,2,Simiyu-4-2
+Simiyu,pulses _vop,45200067.5101547,3,Simiyu-6-3
+Simiyu,rice _vop,39948874.8282509,4,Simiyu-7-4
+Simiyu,cassava _vop,11846841.1799469,5,Simiyu-3-5
+Simiyu,sorghum _vop,10861028.4914265,6,Simiyu-8-6
+Simiyu,bean _vop,7751172.40711975,7,Simiyu-2-7
+Simiyu,groundnut _vop,6900601.21677399,8,Simiyu-5-8
+Simiyu,banana_and_plantain _vop,166713.598754883,9,Simiyu-1-9
+Simiyu,wheat _vop,0,,Simiyu-10-NA
+Shinyanga,total _vop,199563580.328125,1,Shinyanga-9-1
+Shinyanga,cereals _vop,74080733.6638184,2,Shinyanga-4-2
+Shinyanga,rice _vop,34338345.9508057,3,Shinyanga-7-3
+Shinyanga,pulses _vop,28079098.4226074,4,Shinyanga-6-4
+Shinyanga,groundnut _vop,22083692.8313599,5,Shinyanga-5-5
+Shinyanga,bean _vop,20695922.8583984,6,Shinyanga-2-6
+Shinyanga,cassava _vop,12191318.5955811,7,Shinyanga-3-7
+Shinyanga,sorghum _vop,3842037.49274063,8,Shinyanga-8-8
+Shinyanga,banana_and_plantain _vop,28.2000007629395,9,Shinyanga-1-9
+Shinyanga,wheat _vop,0,,Shinyanga-10-NA
+Ruvuma,total _vop,208510794.156464,1,Ruvuma-9-1
+Ruvuma,cereals _vop,93694369.028038,2,Ruvuma-4-2
+Ruvuma,rice _vop,44520667.1099701,3,Ruvuma-7-3
+Ruvuma,pulses _vop,24016180.3244781,4,Ruvuma-6-4
+Ruvuma,bean _vop,20150913.1191177,5,Ruvuma-2-5
+Ruvuma,cassava _vop,17772326.0661411,6,Ruvuma-3-6
+Ruvuma,banana_and_plantain _vop,4147571.48019409,7,Ruvuma-1-7
+Ruvuma,groundnut _vop,3958910.50305176,8,Ruvuma-5-8
+Ruvuma,sorghum _vop,691138.601476669,9,Ruvuma-8-9
+Ruvuma,wheat _vop,150892.399700165,10,Ruvuma-10-10
+Rukwa,total _vop,280158234.406494,1,Rukwa-9-1
+Rukwa,cereals _vop,89058705.6527176,2,Rukwa-4-2
+Rukwa,pulses _vop,61112428.3584518,3,Rukwa-6-3
+Rukwa,bean _vop,60269427.6187439,4,Rukwa-2-4
+Rukwa,rice _vop,29551724.6033764,5,Rukwa-7-5
+Rukwa,banana_and_plantain _vop,18887350.4367409,6,Rukwa-1-6
+Rukwa,groundnut _vop,10263852.7352676,7,Rukwa-5-7
+Rukwa,cassava _vop,7346243.71161652,8,Rukwa-3-8
+Rukwa,sorghum _vop,6172426.48204803,9,Rukwa-8-9
+Rukwa,wheat _vop,823037.800105095,10,Rukwa-10-10
+Pwani,total _vop,455889609.560791,1,Pwani-9-1
+Pwani,cereals _vop,86855979.234848,2,Pwani-4-2
+Pwani,rice _vop,69056991.5781288,3,Pwani-7-3
+Pwani,cassava _vop,60051979.8342972,4,Pwani-3-4
+Pwani,pulses _vop,10889668.946228,5,Pwani-6-5
+Pwani,banana_and_plantain _vop,4404086.0814209,6,Pwani-1-6
+Pwani,sorghum _vop,2779037.90670395,7,Pwani-8-7
+Pwani,bean _vop,6615.30020141602,8,Pwani-2-8
+Pwani,groundnut _vop,496.599983215332,9,Pwani-5-9
+Pwani,wheat _vop,0,,Pwani-10-NA
+Njombe,total _vop,281903134.8479,1,Njombe-9-1
+Njombe,cereals _vop,39766096.3553772,2,Njombe-4-2
+Njombe,pulses _vop,29058123.9358673,3,Njombe-6-3
+Njombe,groundnut _vop,27624951.661232,4,Njombe-5-4
+Njombe,bean _vop,22232200.2349548,5,Njombe-2-5
+Njombe,cassava _vop,4174138.09273148,6,Njombe-3-6
+Njombe,wheat _vop,3388575.50387287,7,Njombe-10-7
+Njombe,rice _vop,1190595.01182556,8,Njombe-7-8
+Njombe,banana_and_plantain _vop,546686.89805603,9,Njombe-1-9
+Njombe,sorghum _vop,258740.599184036,10,Njombe-8-10
+Mwanza,total _vop,209064390.515625,1,Mwanza-9-1
+Mwanza,cereals _vop,78936184.3945313,2,Mwanza-4-2
+Mwanza,rice _vop,49770363.4199219,3,Mwanza-7-3
+Mwanza,cassava _vop,20065952.5177002,4,Mwanza-3-4
+Mwanza,pulses _vop,20055138.1601563,5,Mwanza-6-5
+Mwanza,bean _vop,6643555.26367188,6,Mwanza-2-6
+Mwanza,banana_and_plantain _vop,4422149.71807861,7,Mwanza-1-7
+Mwanza,sorghum _vop,4095236.68457031,8,Mwanza-8-8
+Mwanza,groundnut _vop,4002621.19616699,9,Mwanza-5-9
+Mwanza,wheat _vop,0,,Mwanza-10-NA
+Mtwara,total _vop,322874168.050293,1,Mtwara-9-1
+Mtwara,pulses _vop,71666253.15271,2,Mtwara-6-2
+Mtwara,cassava _vop,37635173.908226,3,Mtwara-3-3
+Mtwara,cereals _vop,31548392.3528976,4,Mtwara-4-4
+Mtwara,groundnut _vop,18078842.1218109,5,Mtwara-5-5
+Mtwara,rice _vop,15584594.0941544,6,Mtwara-7-6
+Mtwara,sorghum _vop,3805896.59953594,7,Mtwara-8-7
+Mtwara,banana_and_plantain _vop,360312.49723053,8,Mtwara-1-8
+Mtwara,bean _vop,246143.401092529,9,Mtwara-2-9
+Mtwara,wheat _vop,0,,Mtwara-10-NA
+Morogoro,total _vop,304763254.818542,1,Morogoro-9-1
+Morogoro,cereals _vop,172963430.350361,2,Morogoro-4-2
+Morogoro,rice _vop,123050652.000095,3,Morogoro-7-3
+Morogoro,pulses _vop,34974175.9950256,4,Morogoro-6-4
+Morogoro,banana_and_plantain _vop,25080596.6438332,5,Morogoro-1-5
+Morogoro,bean _vop,24816564.1466599,6,Morogoro-2-6
+Morogoro,cassava _vop,17727230.1594467,7,Morogoro-3-7
+Morogoro,groundnut _vop,2669470.21136475,8,Morogoro-5-8
+Morogoro,sorghum _vop,1545194.99905205,9,Morogoro-8-9
+Morogoro,wheat _vop,14374.399930954,10,Morogoro-10-10
+Mjini Magharibi,total _vop,6839746.75,1,Mjini Magharibi-9-1
+Mjini Magharibi,cereals _vop,1097710.90625,2,Mjini Magharibi-4-2
+Mjini Magharibi,rice _vop,985018.5,3,Mjini Magharibi-7-3
+Mjini Magharibi,cassava _vop,827430,4,Mjini Magharibi-3-4
+Mjini Magharibi,pulses _vop,58099.9990234375,5,Mjini Magharibi-6-5
+Mjini Magharibi,groundnut _vop,14615.3999023438,6,Mjini Magharibi-5-6
+Mjini Magharibi,sorghum _vop,9582.10038757324,7,Mjini Magharibi-8-7
+Mjini Magharibi,bean _vop,8479.5,8,Mjini Magharibi-2-8
+Mjini Magharibi,banana_and_plantain _vop,0,,Mjini Magharibi-1-NA
+Mjini Magharibi,wheat _vop,0,,Mjini Magharibi-10-NA
+Mbeya,total _vop,471063188.851196,1,Mbeya-9-1
+Mbeya,cereals _vop,126581086.611572,2,Mbeya-4-2
+Mbeya,banana_and_plantain _vop,122530105.524231,3,Mbeya-1-3
+Mbeya,rice _vop,63999294.5025997,4,Mbeya-7-4
+Mbeya,pulses _vop,49964306.1630707,5,Mbeya-6-5
+Mbeya,bean _vop,47737150.1267014,6,Mbeya-2-6
+Mbeya,groundnut _vop,11643790.4927025,7,Mbeya-5-7
+Mbeya,cassava _vop,4639550.20956039,8,Mbeya-3-8
+Mbeya,sorghum _vop,2755814.50566483,9,Mbeya-8-9
+Mbeya,wheat _vop,585377.60131836,10,Mbeya-10-10
+Mara,total _vop,207144279.635132,1,Mara-9-1
+Mara,banana_and_plantain _vop,52018439.8789825,2,Mara-1-2
+Mara,cassava _vop,49661816.3738461,3,Mara-3-3
+Mara,cereals _vop,44541167.8516159,4,Mara-4-4
+Mara,pulses _vop,19696807.8680725,5,Mara-6-5
+Mara,bean _vop,17219527.5428619,6,Mara-2-6
+Mara,sorghum _vop,15773128.6167297,7,Mara-8-7
+Mara,rice _vop,6699967.74655914,8,Mara-7-8
+Mara,groundnut _vop,793560.501983643,9,Mara-5-9
+Mara,wheat _vop,0,,Mara-10-NA
+Manyara,total _vop,186713952.635101,1,Manyara-9-1
+Manyara,pulses _vop,79849459.4838257,2,Manyara-6-2
+Manyara,cereals _vop,54351649.2199326,3,Manyara-4-3
+Manyara,bean _vop,48018001.1598587,4,Manyara-2-4
+Manyara,rice _vop,8260030.23347092,5,Manyara-7-5
+Manyara,banana_and_plantain _vop,4099826.20736694,6,Manyara-1-6
+Manyara,wheat _vop,3917212.79676151,7,Manyara-10-7
+Manyara,sorghum _vop,1252219.59869003,8,Manyara-8-8
+Manyara,cassava _vop,722800.90020752,9,Manyara-3-9
+Manyara,groundnut _vop,446041.400032044,10,Manyara-5-10
+Lindi,total _vop,271705960.07666,1,Lindi-9-1
+Lindi,pulses _vop,36340286.0710449,2,Lindi-6-2
+Lindi,cereals _vop,30328151.6609726,3,Lindi-4-3
+Lindi,cassava _vop,23007992.4336109,4,Lindi-3-4
+Lindi,rice _vop,12323531.9924812,5,Lindi-7-5
+Lindi,groundnut _vop,6465935.17572784,6,Lindi-5-6
+Lindi,sorghum _vop,6442061.51090908,7,Lindi-8-7
+Lindi,banana_and_plantain _vop,7998.69987869263,8,Lindi-1-8
+Lindi,bean _vop,1623.70001220703,9,Lindi-2-9
+Lindi,wheat _vop,0,,Lindi-10-NA
+Kusini Unguja,total _vop,35692226.3623047,1,Kusini Unguja-9-1
+Kusini Unguja,cassava _vop,4140701.03710938,2,Kusini Unguja-3-2
+Kusini Unguja,cereals _vop,3236006.37579346,3,Kusini Unguja-4-3
+Kusini Unguja,rice _vop,2891102.1796875,4,Kusini Unguja-7-4
+Kusini Unguja,pulses _vop,126551.800231934,5,Kusini Unguja-6-5
+Kusini Unguja,groundnut _vop,44658.0002441406,6,Kusini Unguja-5-6
+Kusini Unguja,sorghum _vop,17621.3995857239,7,Kusini Unguja-8-7
+Kusini Unguja,bean _vop,9982.70007324219,8,Kusini Unguja-2-8
+Kusini Unguja,banana_and_plantain _vop,0,,Kusini Unguja-1-NA
+Kusini Unguja,wheat _vop,0,,Kusini Unguja-10-NA
+Kusini Pemba,total _vop,13109700.734375,1,Kusini Pemba-9-1
+Kusini Pemba,cereals _vop,6400980.28125,2,Kusini Pemba-4-2
+Kusini Pemba,rice _vop,6314283.578125,3,Kusini Pemba-7-3
+Kusini Pemba,cassava _vop,4218210.734375,4,Kusini Pemba-3-4
+Kusini Pemba,groundnut _vop,124952.302734375,5,Kusini Pemba-5-5
+Kusini Pemba,pulses _vop,121111.501953125,6,Kusini Pemba-6-6
+Kusini Pemba,sorghum _vop,6607.29986572266,7,Kusini Pemba-8-7
+Kusini Pemba,banana_and_plantain _vop,0,,Kusini Pemba-1-NA
+Kusini Pemba,bean _vop,0,,Kusini Pemba-2-NA
+Kusini Pemba,wheat _vop,0,,Kusini Pemba-10-NA
+Kilimanjaro,total _vop,329715275.30481,1,Kilimanjaro-9-1
+Kilimanjaro,banana_and_plantain _vop,118295457.364136,2,Kilimanjaro-1-2
+Kilimanjaro,cereals _vop,58378970.5977783,3,Kilimanjaro-4-3
+Kilimanjaro,pulses _vop,34806217.8779297,4,Kilimanjaro-6-4
+Kilimanjaro,bean _vop,29350123.9746094,5,Kilimanjaro-2-5
+Kilimanjaro,rice _vop,22128585.6177979,6,Kilimanjaro-7-6
+Kilimanjaro,sorghum _vop,6860769.46992493,7,Kilimanjaro-8-7
+Kilimanjaro,cassava _vop,3948765.59228516,8,Kilimanjaro-3-8
+Kilimanjaro,groundnut _vop,2313871.72705078,9,Kilimanjaro-5-9
+Kilimanjaro,wheat _vop,2261874.60594177,10,Kilimanjaro-10-10
+Kigoma,total _vop,680348452.429321,1,Kigoma-9-1
+Kigoma,banana_and_plantain _vop,292166741.619186,2,Kigoma-1-2
+Kigoma,pulses _vop,85890585.0165024,3,Kigoma-6-3
+Kigoma,cereals _vop,80577839.2234421,4,Kigoma-4-4
+Kigoma,bean _vop,79632434.6842422,5,Kigoma-2-5
+Kigoma,cassava _vop,49856791.7116852,6,Kigoma-3-6
+Kigoma,rice _vop,36361994.1764755,7,Kigoma-7-7
+Kigoma,groundnut _vop,11121064.4170532,8,Kigoma-5-8
+Kigoma,sorghum _vop,1656433.20410919,9,Kigoma-8-9
+Kigoma,wheat _vop,0,,Kigoma-10-NA
+Katavi,total _vop,240712631.260742,1,Katavi-9-1
+Katavi,cereals _vop,83093422.4717445,2,Katavi-4-2
+Katavi,rice _vop,52807033.3923016,3,Katavi-7-3
+Katavi,banana_and_plantain _vop,28434534.1807404,4,Katavi-1-4
+Katavi,pulses _vop,12665510.8353882,5,Katavi-6-5
+Katavi,bean _vop,11968907.5172119,6,Katavi-2-6
+Katavi,cassava _vop,10543330.3585987,7,Katavi-3-7
+Katavi,groundnut _vop,4980817.07633591,8,Katavi-5-8
+Katavi,sorghum _vop,302650.398859024,9,Katavi-8-9
+Katavi,wheat _vop,94.6999969482422,10,Katavi-10-10
+Kaskazini Unguja,total _vop,18883711.75,1,Kaskazini Unguja-9-1
+Kaskazini Unguja,cereals _vop,3148328.625,2,Kaskazini Unguja-4-2
+Kaskazini Unguja,cassava _vop,2894145.09375,3,Kaskazini Unguja-3-3
+Kaskazini Unguja,rice _vop,2643342.6875,4,Kaskazini Unguja-7-4
+Kaskazini Unguja,pulses _vop,277212.40234375,5,Kaskazini Unguja-6-5
+Kaskazini Unguja,sorghum _vop,69829.298828125,6,Kaskazini Unguja-8-6
+Kaskazini Unguja,bean _vop,44922.6005859375,7,Kaskazini Unguja-2-7
+Kaskazini Unguja,groundnut _vop,24855.099609375,8,Kaskazini Unguja-5-8
+Kaskazini Unguja,banana_and_plantain _vop,0,,Kaskazini Unguja-1-NA
+Kaskazini Unguja,wheat _vop,0,,Kaskazini Unguja-10-NA
+Kaskazini Pemba,banana_and_plantain _vop,0,,Kaskazini Pemba-1-NA
+Kaskazini Pemba,bean _vop,0,,Kaskazini Pemba-2-NA
+Kaskazini Pemba,cassava _vop,0,,Kaskazini Pemba-3-NA
+Kaskazini Pemba,cereals _vop,0,,Kaskazini Pemba-4-NA
+Kaskazini Pemba,groundnut _vop,0,,Kaskazini Pemba-5-NA
+Kaskazini Pemba,pulses _vop,0,,Kaskazini Pemba-6-NA
+Kaskazini Pemba,rice _vop,0,,Kaskazini Pemba-7-NA
+Kaskazini Pemba,sorghum _vop,0,,Kaskazini Pemba-8-NA
+Kaskazini Pemba,total _vop,0,,Kaskazini Pemba-9-NA
+Kaskazini Pemba,wheat _vop,0,,Kaskazini Pemba-10-NA
+Kagera,total _vop,581313009.443848,1,Kagera-9-1
+Kagera,banana_and_plantain _vop,305265328.72963,2,Kagera-1-2
+Kagera,pulses _vop,87295796.5685882,3,Kagera-6-3
+Kagera,bean _vop,76591869.3879089,4,Kagera-2-4
+Kagera,cereals _vop,44943467.5270462,5,Kagera-4-5
+Kagera,cassava _vop,33344451.5555229,6,Kagera-3-6
+Kagera,rice _vop,6736375.70608139,7,Kagera-7-7
+Kagera,sorghum _vop,6007049.09280968,8,Kagera-8-8
+Kagera,groundnut _vop,4012455.39849853,9,Kagera-5-9
+Kagera,wheat _vop,331.5,10,Kagera-10-10
+Iringa,total _vop,542115321.834473,1,Iringa-9-1
+Iringa,groundnut _vop,131620703.955101,2,Iringa-5-2
+Iringa,cereals _vop,68552915.6904716,3,Iringa-4-3
+Iringa,pulses _vop,55821556.8118286,4,Iringa-6-4
+Iringa,bean _vop,40784089.9931183,5,Iringa-2-5
+Iringa,rice _vop,11977852.9269981,6,Iringa-7-6
+Iringa,wheat _vop,1863254.19796562,7,Iringa-10-7
+Iringa,cassava _vop,1690741.7807312,8,Iringa-3-8
+Iringa,sorghum _vop,1155663.09929276,9,Iringa-8-9
+Iringa,banana_and_plantain _vop,27936.8004760742,10,Iringa-1-10
+Geita,total _vop,307859210.168945,1,Geita-9-1
+Geita,cereals _vop,94496954.5519333,2,Geita-4-2
+Geita,cassava _vop,64991760.2846108,3,Geita-3-3
+Geita,pulses _vop,58379010.9284058,4,Geita-6-4
+Geita,rice _vop,52095341.7540588,5,Geita-7-5
+Geita,bean _vop,50095161.1234131,6,Geita-2-6
+Geita,groundnut _vop,20108776.1641884,7,Geita-5-7
+Geita,banana_and_plantain _vop,7002067.72187805,8,Geita-1-8
+Geita,sorghum _vop,1121289.29677773,9,Geita-8-9
+Geita,wheat _vop,0,,Geita-10-NA
+Dodoma,total _vop,221765205.199097,1,Dodoma-9-1
+Dodoma,cereals _vop,42223763.5430527,2,Dodoma-4-2
+Dodoma,pulses _vop,39598868.7924347,3,Dodoma-6-3
+Dodoma,sorghum _vop,14009399.6867199,4,Dodoma-8-4
+Dodoma,groundnut _vop,13438363.2048798,5,Dodoma-5-5
+Dodoma,cassava _vop,11314474.6017036,6,Dodoma-3-6
+Dodoma,bean _vop,6925042.01756287,7,Dodoma-2-7
+Dodoma,rice _vop,2990605.28653336,8,Dodoma-7-8
+Dodoma,wheat _vop,14342.900390625,9,Dodoma-10-9
+Dodoma,banana_and_plantain _vop,647.700012207031,10,Dodoma-1-10
+Dar es Salaam,total _vop,67276987.609375,1,Dar es Salaam-9-1
+Dar es Salaam,cassava _vop,2787417.96972656,2,Dar es Salaam-3-2
+Dar es Salaam,banana_and_plantain _vop,2505958.81288147,3,Dar es Salaam-1-3
+Dar es Salaam,cereals _vop,2295131.11425781,4,Dar es Salaam-4-4
+Dar es Salaam,rice _vop,1880488.30273437,5,Dar es Salaam-7-5
+Dar es Salaam,pulses _vop,57635.3999176025,6,Dar es Salaam-6-6
+Dar es Salaam,sorghum _vop,51751.099609375,7,Dar es Salaam-8-7
+Dar es Salaam,bean _vop,0,,Dar es Salaam-2-NA
+Dar es Salaam,groundnut _vop,0,,Dar es Salaam-5-NA
+Dar es Salaam,wheat _vop,0,,Dar es Salaam-10-NA
+Arusha,total _vop,276427459.12204,1,Arusha-9-1
+Arusha,cereals _vop,56847158.1821022,2,Arusha-4-2
+Arusha,banana_and_plantain _vop,46592445.6812019,3,Arusha-1-3
+Arusha,pulses _vop,37917032.2722397,4,Arusha-6-4
+Arusha,rice _vop,26314710.149334,5,Arusha-7-5
+Arusha,bean _vop,19731101.6069183,6,Arusha-2-6
+Arusha,wheat _vop,2706126.8947382,7,Arusha-10-7
+Arusha,sorghum _vop,1931168.70557976,8,Arusha-8-8
+Arusha,cassava _vop,314235.299856186,9,Arusha-3-9
+Arusha,groundnut _vop,17096.30078125,10,Arusha-5-10

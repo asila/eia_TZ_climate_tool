@@ -1,0 +1,47 @@
+Fullname,Code
+wheat,whea
+rice,rice
+maize,maiz
+barley,barl
+pearl millet,pmil
+small millet,smil
+sorghum,sorg
+other cereals,ocer
+potato,pota
+sweet potato,swpo
+yams,yams
+cassava,cass
+other roots,orts
+bean,bean
+chickpea,chic
+cowpea,cowp
+pigeonpea,pige
+lentil,lent
+other pulses,opul
+soybean,soyb
+groundnut,grou
+coconut,cnut
+oilpalm,oilp
+sunflower,sunf
+rapeseed,rape
+sesameseed,sesa
+other oil crops,ooil
+sugarcane,sugc
+sugarbeet,sugb
+cotton,cott
+other fibre crops,ofib
+arabica coffee,acof
+robusta coffee,rcof
+cocoa,coco
+tea,teas
+tobacco,toba
+banana,bana
+plantain,plnt
+tropical fruit,trof
+temperate fruit,temf
+vegetables,vege
+rest of crops,rest
+banana_and_plantain,banpl
+cereals,cere
+pulses,puls
+total,total
