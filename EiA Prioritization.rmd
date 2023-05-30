@@ -42,6 +42,13 @@ required.packages <- c("data.table",
 pacman::p_load(char=required.packages,install = T,character.only = T)
 ```
 
+```{r Set save directory for analyses, echo=F}
+SaveDir<-"Analysis"
+if(!dir.exists(SaveDir)){
+  dir.create(SaveDir)
+}
+```
+
 ## EiA Tanzania GCF Proposal Climate Prioritization Tool {.tabset .tabset-fade .tabset-pills}
 
 ```{r Hazards - load meta data and class breaks,echo=F}
@@ -49,15 +56,14 @@ hazard_dir<-"Data/atlas_hazards"
 hazards<-c("NDD","NTx40","HSM_NTx35","HSH_max","THI_max","NDWS","TAI","NDWL0")
 haz_meta<-data.table::fread("./Data/atlas_hazards/metadata.csv")
 haz_class<-fread("./Data/atlas_hazards/classes.csv")
+haz_classes<-unique(haz_class$description)
 
 Scenarios<-c("ssp245","ssp585")
 Times<-c("2021_2040","2041_2060")
 Scenarios<-rbind(data.table(Scenario="historic",Time="historic"),data.table(expand.grid(Scenario=Scenarios,Time=Times)))
 ```
 
-**Define hazard thresholds** - use the top row to set the threshold, the middle row the direction (`<` lower or '>' higher than the threshold), and the bottom row to rename the hazard. Note renaming hazards requires recalculation of combined hazards and therefore takes time. When renaming variables **DO NOT** use underscores `_` or the reserved words `mean`,`meanclass`,`prop`,`propclass`,`exceedmean`, `exceedmax`.  
-
-The `Reccurence threshold` is used when classifying hazards based on the proportions of seasons a hazard is present in a time series of data. If set to 0.5 then a hazard is considered present if it is present in more than 50% of seasons.
+**Define hazard thresholds**  
 
 **HSH_max** = `r haz_meta[grepl("HSH_max",file.filename),dataset.desc]`  
 **HSM_NTx35** = `r haz_meta[grepl("HSM_NTx35",file.filename),dataset.desc]`  
@@ -66,106 +72,196 @@ The `Reccurence threshold` is used when classifying hazards based on the proport
 **NDWS** = `r haz_meta[grepl("NDWS",file.filename),dataset.desc]`  
 **NTx40** = `r haz_meta[grepl("NTx40",file.filename),dataset.desc]`  
 **TAI** = `r haz_meta[grepl("TAI",file.filename),dataset.desc]`  
-**THI_max** = `r haz_meta[grepl("THI_max",file.filename),dataset.desc]`
+**THI_max** = `r haz_meta[grepl("THI_max",file.filename),dataset.desc]`  
+  
+Use the table below set hazard thresholds and the direction of classification (`<` lower or '>' higher than the threshold), and the bottom row to rename the hazard. Note renaming hazards requires recalculation of combined hazards and therefore takes time. When renaming variables **DO NOT** use underscores `_` or the reserved words `mean`,`meanclass`,`prop`,`propclass`,`exceedmean`, `exceedmax`.  
+
+:::: {style="display: flex;"}
+::: {}
+```{r Hazards - 1 Cat,echo=F}
+  selectInput(inputId="H1_cat",
+             label=haz_meta[grepl(hazards[1],file.filename),dataset.title_short],
+             choices=haz_classes,
+             selected="Severe",
+             width="140px"
+             )
+```
+:::
+:::{}
+```{r Hazards - 2 Cat,echo=F}
+selectInput(inputId="H2_cat",
+            label=haz_meta[grepl(hazards[2],file.filename),dataset.title_short],
+             choices=haz_classes,
+             selected="Severe",
+             width="140px"
+             )
+```
+:::
+:::{}
+```{r Hazards - 3 Cat,echo=F}
+selectInput(inputId="H3_cat",
+            label=haz_meta[grepl(hazards[3],file.filename),dataset.title_short],
+             choices=haz_classes,
+             selected="Severe",
+             width="140px"
+             )
+```
+:::
+:::{}
+```{r Hazards - 4 Cat,echo=F}
+selectInput(inputId="H4_cat",
+             label=haz_meta[grepl(hazards[4],file.filename),dataset.title_short],
+             choices=haz_classes,
+             selected="Severe",
+             width="140px"
+             )
+```
+:::
+:::{}
+```{r Hazards - 5 Cat,echo=F}
+selectInput(inputId="H5_cat",
+             label=haz_meta[grepl(hazards[5],file.filename),dataset.title_short],
+             choices=haz_classes,
+             selected="Severe",
+             width="140px"
+             )
+```
+:::
+:::{}
+```{r Hazards - 6 Cat,echo=F}
+selectInput(inputId="H6_cat",
+             label=haz_meta[grepl(hazards[6],file.filename),dataset.title_short],
+             choices=haz_classes,
+             selected="Severe",
+             width="140px"
+             )
+```
+:::
+:::{}
+```{r Hazards - 7 Cat,echo=F}
+selectInput(inputId="H7_cat",
+             label=haz_meta[grepl(hazards[7],file.filename),dataset.title_short],
+             choices=haz_classes,
+             selected="Severe",
+             width="140px"
+             )  
+```
+:::
+:::{}
+```{r Hazards - 8 Cat,echo=F}
+selectInput(inputId="H8_cat",
+             label=haz_meta[grepl(hazards[8],file.filename),dataset.title_short],
+             choices=haz_classes,
+             selected="Severe",
+             width="140px"
+             )
+```
+:::
+::::
 
 :::: {style="display: flex;"}
 ::: {}
 ```{r Hazard Thresholds 1,echo=F}
+renderUI({
 numericInput(inputId="H1_Thresh", 
-               label=hazards[1], 
-               value=haz_class[index_name==gsub("_max","",hazards[1]) & description=="Moderate",lower_lim],
+               label=NULL,
+               value=haz_class[index_name==gsub("_max","",hazards[1]) & description==input$H1_cat,lower_lim],
                min=0,
                max=100,
                step=1,
-               width="100px")
+               width="140px")
+})
 ```
 :::
 :::{}
 ```{r Hazard Thresholds 2,echo=F}
+renderUI({
 numericInput(inputId="H2_Thresh", 
-               label=hazards[2], 
-               value=haz_class[index_name==gsub("_max","",hazards[2]) & description=="Moderate",lower_lim],
+               label=NULL, 
+               value=haz_class[index_name==gsub("_max","",hazards[2]) & description==input$H2_cat,lower_lim],
                min=0,
                max=100,
                step=1,
-               width="100px")
+               width="140px")
+})
 ```
 :::
 :::{}
 ```{r Hazard Thresholds 3,echo=F}    
+renderUI({
 numericInput(inputId="H3_Thresh", 
-               label=hazards[3], 
-               value=haz_class[index_name==gsub("_max","",hazards[3]) & description=="Moderate",lower_lim],
+               label=NULL, 
+               value=haz_class[index_name==gsub("_max","",hazards[3]) & description==input$H3_cat,lower_lim],
                min=0,
                max=100,
                step=1,
-               width="100px")
+               width="140px")
+})
 ```
 :::
 :::{}
-```{r Hazard Thresholds 4,echo=F}      
+```{r Hazard Thresholds 4,echo=F}  
+renderUI({
 numericInput(inputId="H4_Thresh", 
-               label=hazards[4], 
-               value=haz_class[index_name==gsub("_max","",hazards[4]) & description=="Moderate",lower_lim],
+               label=NULL, 
+               value=haz_class[index_name==gsub("_max","",hazards[4]) & description==input$H4_cat,lower_lim],
                min=0,
                max=100,
                step=1,
-               width="100px")
+               width="140px")
+})
 ```
 :::
 :::{}
-```{r Hazard Thresholds 5,echo=F}        
+```{r Hazard Thresholds 5,echo=F}    
+renderUI({
 numericInput(inputId="H5_Thresh", 
-               label=hazards[5], 
-               value=haz_class[index_name==gsub("_max","",hazards[5]) & description=="Moderate",lower_lim],
+               label=NULL, 
+               value=haz_class[index_name==gsub("_max","",hazards[5]) & description==input$H5_cat,lower_lim],
                min=0,
                max=100,
                step=1,
-               width="100px")
+               width="140px")
+})
 ```
 :::
 :::{}
-```{r Hazard Thresholds 6,echo=F}          
+```{r Hazard Thresholds 6,echo=F}   
+renderUI({
 numericInput(inputId="H6_Thresh", 
-               label=hazards[6], 
-               value=haz_class[index_name==gsub("_max","",hazards[6]) & description=="Moderate",lower_lim],
+               label=NULL, 
+               value=haz_class[index_name==gsub("_max","",hazards[6]) & description==input$H6_cat,lower_lim],
                min=0,
                max=100,
                step=1,
-               width="100px")
+               width="140px")
+})
 ```
 :::
 :::{}
-```{r Hazard Thresholds 7,echo=F}          
+```{r Hazard Thresholds 7,echo=F}      
+renderUI({
 numericInput(inputId="H7_Thresh", 
-               label=hazards[7], 
-               value=haz_class[index_name==gsub("_max","",hazards[7]) & description=="Moderate",lower_lim],
+               label=NULL, 
+               value=haz_class[index_name==gsub("_max","",hazards[7]) & description==input$H7_cat,lower_lim],
                min=0,
                max=100,
                step=1,
-               width="100px")
+               width="140px")
+})
 ```
 :::
 :::{}
-```{r Hazard Thresholds 8,echo=F}         
+```{r Hazard Thresholds 8,echo=F}  
+renderUI({
 numericInput(inputId="H8_Thresh", 
-               label=hazards[8], 
-               value=haz_class[index_name==gsub("_max","",hazards[8]) & description=="Moderate",lower_lim],
+               label=NULL, 
+               value=haz_class[index_name==gsub("_max","",hazards[8]) & description==input$H8_cat,lower_lim],
                min=0,
                max=100,
                step=1,
-               width="100px")
-```
-:::
-:::{}
-```{r Hazard Thresholds PropThreshold,echo=F}
-numericInput(inputId="PropThreshold",
-           label="Recurrence threshold", 
-           value=0.5,
-           min=0,
-           max=0.1,
-           step=1,
-           width="200px")
+               width="140px")
+})
 ```
 :::
 ::::
@@ -178,7 +274,7 @@ selectInput(inputId="H1_Direction",
               choices = c("<",">"),
               selected = ">",
               multiple = F, 
-              width="100px")
+              width="140px")
 ```
 :::
 :::{}
@@ -188,7 +284,7 @@ selectInput(inputId="H2_Direction",
               choices = c("<",">"),
               selected = ">",
               multiple = F, 
-              width="100px")
+              width="140px")
 ```
 :::
 :::{}
@@ -198,7 +294,7 @@ selectInput(inputId="H3_Direction",
               choices = c("<",">"),
               selected = ">",
               multiple = F, 
-              width="100px")
+              width="140px")
 ```
 :::
 :::{}
@@ -208,7 +304,7 @@ selectInput(inputId="H4_Direction",
               choices = c("<",">"),
               selected = ">",
               multiple = F, 
-              width="100px")
+              width="140px")
 ```
 :::
 :::{}
@@ -218,7 +314,7 @@ selectInput(inputId="H5_Direction",
               choices = c("<",">"),
               selected = ">",
               multiple = F, 
-              width="100px")
+              width="140px")
 ```
 :::
 :::{}
@@ -228,7 +324,7 @@ selectInput(inputId="H6_Direction",
               choices = c("<",">"),
               selected = ">",
               multiple = F, 
-              width="100px")
+              width="140px")
 ```
 :::
 :::{}
@@ -238,7 +334,7 @@ selectInput(inputId="H7_Direction",
               choices = c("<",">"),
               selected = ">",
               multiple = F, 
-              width="100px")
+              width="140px")
 ```
 :::
 :::{}
@@ -248,7 +344,7 @@ selectInput(inputId="H8_Direction",
               choices = c("<",">"),
               selected = ">",
               multiple = F, 
-              width="100px")
+              width="140px")
 ```
 :::
 ::::
@@ -259,7 +355,7 @@ selectInput(inputId="H8_Direction",
 textInput(inputId="H1_Name", 
               label=NULL,
               value = hazards[1],
-              width="100px")
+              width="140px")
 ```
 :::
 :::{}
@@ -267,7 +363,7 @@ textInput(inputId="H1_Name",
 textInput(inputId="H2_Name", 
               label=NULL,
               value = hazards[2],
-              width="100px")
+              width="140px")
 ```
 :::
 :::{}
@@ -275,7 +371,7 @@ textInput(inputId="H2_Name",
 textInput(inputId="H3_Name", 
               label=NULL,
               value = hazards[3],
-              width="100px")
+              width="140px")
 ```
 :::
 :::{}
@@ -283,7 +379,7 @@ textInput(inputId="H3_Name",
 textInput(inputId="H4_Name", 
               label=NULL,
               value = hazards[4],
-              width="100px")
+              width="140px")
 ```
 :::
 :::{}
@@ -291,7 +387,7 @@ textInput(inputId="H4_Name",
 textInput(inputId="H5_Name", 
               label=NULL,
               value = hazards[5],
-              width="100px")
+              width="140px")
 ```
 :::
 :::{}
@@ -299,7 +395,7 @@ textInput(inputId="H5_Name",
 textInput(inputId="H6_Name", 
               label=NULL,
               value = hazards[6],
-              width="100px")
+              width="140px")
 ```
 :::
 :::{}
@@ -307,7 +403,7 @@ textInput(inputId="H6_Name",
 textInput(inputId="H7_Name", 
               label=NULL,
               value = hazards[7],
-              width="100px")
+              width="140px")
 ```
 :::
 :::{}
@@ -315,12 +411,14 @@ textInput(inputId="H7_Name",
 textInput(inputId="H8_Name", 
               label=NULL,
               value = hazards[8],
-              width="100px")
+              width="140px")
 ```
 :::
 ::::
 
-Here you can subset the climate variables used in the analysis, this is particularly relevant when considering the intersection of multiple hazards (see `Analysis: Combined hazards` tab.
+*Note all hazards are calculated for the maize growing season.* 
+
+Here you can subset the climate hazards used in the analysis. We recommend no more than 3 or 4 hazards are included otherwise the combinations of multiple hazards become too numerous to visualize (see `Analysis: Combined hazards` tab).
 ```{r Hazard - Variables,echo=F}
 haz_names<-reactive({
   c(input$H1_Name,input$H2_Name,input$H3_Name,input$H4_Name,input$H5_Name,input$H6_Name,input$H7_Name,input$H8_Name)
@@ -330,10 +428,39 @@ renderUI({
   checkboxGroupInput(inputId="Analysis_Vars", 
               label="Hazards to include in analysis",
               choices = haz_names(),
-              selected = haz_names()[c(1,4,7)],
+              selected = haz_names()[c(1,3,4)],
               inline=T)
 })
 ```
+
+The `Reccurence threshold` is used when classifying hazards based on the proportions of seasons a hazard is present in a time series of data. If set to 0.5 then a hazard is considered present if it is present in more than 50% of seasons. 
+
+:::: {style="display: flex;"}
+::: {}
+```{r Hazard Thresholds PropThreshold,echo=F}
+numericInput(inputId="PropThreshold",
+           label="Recurrence threshold", 
+           value=0.5,
+           min=0,
+           max=0.1,
+           step=1,
+           width="200px")
+```
+:::
+:::{}
+```{r Season -  Choose scenario, echo=F}
+  selectInput(inputId="Scenario", 
+              label="Scenario",
+              choices =  paste0(Scenarios$Scenario,"-",Scenarios$Time),
+              selected =  paste0(Scenarios$Scenario,"-",Scenarios$Time)[1],
+              multiple = F, 
+              width="140px")
+
+```
+:::
+::::
+
+*Historical = 1995 to 2013.*
 
 ### Data
 Load admin areas:
@@ -365,24 +492,8 @@ SPAM<-terra::rast("Data/mapspam/mapspam_crops.tif")
 SPAM<-terra::mask(terra::crop(SPAM,Geographies),Geographies)
 renderPlot({terra::plot(SPAM)})
 ```
-
-
-### View Analysis Code
-This section shows the code that powers the hazard classification and data extraction. It is currently undocumented and a general user need not concern themselves with this section.
-```{r set Save directory}
-SaveDir<-"Data/Analysis"
-if(!dir.exists(SaveDir)){
-  dir.create(SaveDir)
-}
-
-PlotDir<-"Plots"
-if(!dir.exists(PlotDir)){
-  dir.create(PlotDir)
-}
-
-```
-
-```{r Dataset - Load MapSPAM,eval=T}
+Process MapSPAM data:
+```{r Analysis - Process MapSPAM,eval=T}
 Codes<-data.table::fread("Data/mapspam/SpamCodes.csv")
 
 # This chunk creates tables that rank crops according to their MapSPAM area within regions. It is not currently used in this script but is useful when select which crops to disply in waffle plots
@@ -423,8 +534,10 @@ SPAMareas2<-data.table::fread("Data/mapspam/SPAMareas2.csv")
 SPAMareas1<-data.table::fread("Data/mapspam/SPAMareas1.csv")
 }
 
-
 ```
+### View Analysis Code
+This section shows the code that powers the hazard classification and data extraction. It is currently undocumented and a general user need not concern themselves with this section.
+
 Create functions to detect and classify hazards:
 ```{r Analysis - Create functions to classify hazards 1}
 
@@ -543,25 +656,31 @@ HazardWrapper<-function(Thresholds,FileName,SaveDir,PropThreshold,PropTDir,hazar
   Files<-list.files(hazard_dir,".tif",full.names = T)
 
   Hazards<-lapply(1:nrow(Scenarios),FUN=function(j){
-      save_file<-paste0(SaveDir,"/Haz-",Scenarios$Scenario[j],"-",Scenarios$Time[j],"-",FileName,".tif")
-      THRESH<-Thresholds
-        if(!file.exists(save_file)){
-    for(i in 1:nrow(THRESH)){
+    for(i in 1:nrow(Thresholds)){
       if(F){
       # Display progress
-      cat('\r                                                                                                                                          ')
+      cat('\r                                                                                                                     ')
       cat('\r',paste0(i," | ",j))
       flush.console()
       }
       
-      Data<-terra::rast(Files[grepl(Scenarios$Scenario[j],Files) & grepl(Scenarios$Time[j],Files) & grepl(THRESH$Variable[i],Files)])
+      save_file<-paste0(SaveDir,"/Haz-",Scenarios$Scenario[j],"-",Scenarios$Time[j],"-",Thresholds[i,Variable],"-",Thresholds[i,Threshold],"-",if(Thresholds[i,Direction]==">"){"G"}else{"L"},".tif")
+      
+      if(!file.exists(save_file)){
+
+      Data<-terra::rast(Files[grepl(Scenarios$Scenario[j],Files) & grepl(Scenarios$Time[j],Files) & grepl(Thresholds$Variable[i],Files)])
       
       X<-ClassifyFun(Data=Data,
-                  VAR=THRESH[i,Variable],
-                  Threshold=THRESH[i,Threshold],
-                  Direction=THRESH[i,Direction],
+                  VAR=Thresholds[i,Variable],
+                  Threshold=Thresholds[i,Threshold],
+                  Direction=Thresholds[i,Direction],
                   PropThreshold=PropThreshold,
                   PropTDir=PropTDir)
+        terra::writeRaster(X,filename=save_file,overwrite=T)
+      }else{
+        X<-terra::rast(save_file)
+      }
+      
       if(i==1){
         Hazards<-X
       }else{
@@ -569,14 +688,9 @@ HazardWrapper<-function(Thresholds,FileName,SaveDir,PropThreshold,PropTDir,hazar
       }
     }
     
-    terra::writeRaster(Hazards,filename=save_file,overwrite=T)
     Hazards
-        }else{
-          terra::rast(save_file)
-        }
   })
 
-  
   Hazards<-lapply(1:length(Hazards),FUN=function(i){
     HAZ<-Hazards[[i]]
     names(HAZ)<-mgsub::mgsub(names(HAZ),Thresholds[,paste0(Variable,"_")],Thresholds[,paste0(Renamed,"_")])
@@ -844,19 +958,9 @@ renderUI({
               label="Display hazards                        ",
               choices = input$Analysis_Vars,
               selected= input$Analysis_Vars, 
+              width=length(input$Analysis_Vars)*80,
               inline=T)
 })
-```
-:::
-:::{}
-```{r Season -  Choose scenario, echo=F}
-  selectInput(inputId="Scenario", 
-              label="Scenario",
-              choices =  paste0(Scenarios$Scenario,"-",Scenarios$Time),
-              selected =  paste0(Scenarios$Scenario,"-",Scenarios$Time)[1],
-              multiple = F, 
-              width="100px")
-
 ```
 :::
 :::{}
@@ -866,7 +970,7 @@ renderUI({
               choices = c("Region","District"),
               selected = "District",
               multiple = F, 
-              width="100px")
+              width="140px")
 
 AdminLevel<-reactive({
   if(input$AdminLevel1=="Region"){
@@ -884,7 +988,7 @@ AdminLevel<-reactive({
               choices = c("All","None",""),
               selected = "All",
               multiple = F, 
-              width="100px")
+              width="140px")
 
 
 ```
@@ -918,7 +1022,7 @@ conditionalPanel(
               choices = c("All","None",""),
               selected = "All",
               multiple = F, 
-              width="100px")
+              width="140px")
 )
 
 ```
@@ -1097,8 +1201,8 @@ addGeog2<-function(){terra::plot(Geographies[Geographies$NAME_2 %in% input$Admin
 ```
 
 #### Severity and recurrance {.tabset .tabset-fade .tabset-pills}
-##### Long-term means
-Long-term historical means for climate variables within selected season
+##### Scenario means
+Scenario means for climate variables
 ```{r Plot - Means,echo=F}
 renderPlot({
 terra::plot(PlotHazards()[[paste0(input$Plot_Vars,"_mean")]],
@@ -1111,7 +1215,7 @@ terra::plot(PlotHazards()[[paste0(input$Plot_Vars,"_mean")]],
 },height=Plot.Height, width=Plot.Width)
 ```
 
-Long-term historical means classified according to hazard thresholds (0 = hazard absent, 1 = hazard present)
+Scenario means classified according to hazard thresholds (0 = hazard absent, 1 = hazard present)
 ```{r Plot - Meanclass,echo=F}
 renderPlot({
 terra::plot(PlotHazards()[[paste0(input$Plot_Vars,"_meanclass")]],
@@ -1220,7 +1324,7 @@ SxRtab<-reactive({
 })
 ```
 
-This table present the intersection of hazard severity and recurrence for the selected geographic area. The `mean` column is the long-term average value of the climate variable. Severity is represented by the mean  and max exceedance of hazard threshold (`exceedmean` and `exceedmax` columns). Recurrence is represented by the proportion of seasons containing a hazard (`prop` column). Variables are averaged across all the values within an area.
+This table present the intersection of hazard severity and recurrence for the selected geographic area. The `mean` column is the average value of the climate variable. Severity is represented by the mean  and max exceedance of hazard threshold (`exceedmean` and `exceedmax` columns). Recurrence is represented by the proportion of years containing a hazard (`prop` column). Variables are averaged across all the values within an area.
 ```{r Table - Severity x Risk DT, echo=F}
 renderDT({
   datatable(dplyr::mutate_if(SxRtab(),is.numeric,~round(.,2)),
@@ -1236,7 +1340,7 @@ renderDT({
 ```
 
 #### Combined hazards
-This plot shows the intersection of climate hazards as classified using long-term historical means.
+This plot shows the intersection of climate hazards as classified using scenario means (average of all years).
 ```{r Plot - Combinations mean,echo=F}
 CombPlot<-reactive({ terra::mask(
       terra::crop(x = droplevels(HazComb()[["MeanHaz"]][[input$Scenario]][["RastReclass"]]), Geographies[Geographies$NAME_2 %in% input$Admin2,]),
@@ -1280,8 +1384,8 @@ This section takes the combined hazards and intersects them with spatial dataset
 ```{r Table -  Method, echo=F}
 selectInput(inputId="HazMeth1",
              label="Thresholding method", 
-            choices = c("Long-term avg","Recurrence"),
-            selected = "Long-term avg",
+            choices = c("Scenario mean","Recurrence"),
+            selected = "Scenario mean",
             multiple = F, 
             width="150px")
 
@@ -1371,7 +1475,7 @@ renderDT({
               choices = c("Yes", "No"),
               selected="Yes", 
               multiple = F, 
-              width="180px")
+              width="140px")
 ```
 :::
 :::{}
