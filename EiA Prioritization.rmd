@@ -466,6 +466,11 @@ numericInput(inputId="PropThreshold",
 Load admin areas:
 ```{r Dataset - load regions}
 Geographies<-terra::vect("./Data/admin_units/gadm41_TZA_2.shp")
+Geographies<-terra::aggregate(Geographies,by="NAME_2")
+
+# Which units are lakes?
+Geographies$NAME_2[grep("Lake ",Geographies$NAME_2)]
+
 renderPlot({terra::plot(Geographies)})
 ```
 Load cropland extent data (source: https://glad.umd.edu/dataset/croplands)
@@ -799,7 +804,7 @@ ExtractHaz<-function(Regions,Reg.Field,Hazard,HazTab,SPAM,Cropland,TotalPop){
   X[,Hazard:=Hazard-Region]
   X[,Region:=terra::values(Regions)[match(X$Region,Regions$Code),Reg.Field]]
   X[,Hazard:=HazTab[match(X$Hazard,Recode),Hazard]]
-  X<-data.table::melt(X,id.vars = c("Hazard","Region"),value.name = "Area",variable.name = "Crop")
+  X<-data.table::melt(X,id.vars = c("Hazard","Region"),value.name = "VoP",variable.name = "Crop")
 
   Y<-data.table(zonal(c(TotalPop,MaskedPop,Cropland),HAZ,fun=sum,na.rm=T))
   Y[,Region:=floor(Hazard/100)*100]
@@ -819,13 +824,13 @@ ExtractHaz<-function(Regions,Reg.Field,Hazard,HazTab,SPAM,Cropland,TotalPop){
        
   Y<-Y[,Pop:=sum(Pop),by=Region
        ][,PopRisk:=sum(PopRisk),by=Region
-         ][,Cropland.Perc:=round(100*Cropland.Area/Total.Area,1)
+         ][,Cropland.Perc:=round(100*Cropland.Area/Total.Area,2)
            ][!is.na(Hazard)
              ][,Cropland.Area:=NULL
                ][,Crop.Perc:=sum(Cropland.Perc),by=Region
-                 ][,PopRiskPerc:=round(100*PopRisk/Pop,1)
-                   ][,Pop:=round(Pop/10^6,1)
-                     ][,PopRisk:=round(PopRisk/10^6,1)]
+                 ][,PopRiskPerc:=round(100*PopRisk/Pop,2)
+                   ][,Pop:=round(Pop/10^6,2)
+                     ][,PopRisk:=round(PopRisk/10^6,2)]
   
   Y<-dcast(Y,Region+Total.Area+Crop.Perc+Pop+PopRiskPerc+PopRisk~Hazard,value.var = "Cropland.Perc")[Total.Area!=0]
 
@@ -930,7 +935,6 @@ renderPrint({names(HazComb())})
 renderPrint({names(HazComb()[[1]])})
 renderPrint({names(HazComb()[[1]][[1]])})
 ```
-
 
 Summarize hazards by region and MapSPAM data:
 ```{r Analysis - Summarize hazards by region and crop}
@@ -1297,37 +1301,42 @@ terra::plot(PlotHazards()[[paste0(input$Plot_Vars,"_exceedmax")]],
 
 ##### Severity & recurrence
 ```{r Table - Severity x Risk function, echo=F}
-SxRtabFun<-function(Hazards,Plot_Vars,Geographies,AdminLevel){
+SxRtabFun<-function(Hazards,Plot_Vars,ExtractBy){
   Hazards<-Hazards[[paste0(rep(Plot_Vars,each=4),c("_prop","_mean","_exceedmean","_exceedmax"))]]
-  Field<-if(AdminLevel=="Admin1"){"NAME_1"}else{"NAME_2"}
-  Geographies<-terra::rasterize(Geographies,Hazards,field=Field)
-  Data<-data.table(zonal(Hazards,Geographies,fun=mean,na.rm=T))
-  Data<-melt(Data,id.vars=Field)
-  Data[,Hazard:=tstrsplit(variable,"_",keep=1)][,Variable:=tstrsplit(variable,"_",keep=2)][,variable:=NULL]
-  
-  colnames(Data)[grepl("NAME_",colnames(Data))]<-"Geography"
-  
-  Data<-dcast(Data,Geography+Hazard~Variable,value.var="value")
+  Data<-data.table(terra::zonal(x=Hazards,z=ExtractBy,fun=mean,na.rm=T))
+  colnames(Data)[1]<-"Admin_area"
+  Data<-melt(Data,id.vars="Admin_area")
+  Data[,Variable:=strsplit(as.character(variable),"_")][,Variable:=unlist(lapply(Variable,FUN=function(x){x[length(x)]}))]
+  Data[,Hazard:=gsub(paste(paste0("_",unique(Variable)),collapse="|"),"",variable)][,variable:=NULL]
 
-  
-  
+  Data<-dcast(Data,Admin_area+Hazard~Variable,value.var="value")
+
   return(Data)
 }
+```
+
+```{r Create raster versions of admin areas,echo=F}
+SubGeog_rast<-reactive({
+  if(input$AdminLevel1=="District"){
+    rasterize(Geographies,PlotHazards(),field="NAME_2")
+    }else{
+      rasterize(Geographies,PlotHazards(),field="NAME_1")
+      }
+  })
 ```
 
 ```{r Table - Severity x Risk calculation, echo=F}
 SxRtab<-reactive({
   SxRtabFun(Hazards=PlotHazards(),
             Plot_Vars=input$Plot_Vars,
-            Geographies=Geographies[Geographies$NAME_2 %in% input$Admin2,],
-            AdminLevel=AdminLevel())
+            ExtractBy=SubGeog_rast())
 })
 ```
 
 This table present the intersection of hazard severity and recurrence for the selected geographic area. The `mean` column is the average value of the climate variable. Severity is represented by the mean  and max exceedance of hazard threshold (`exceedmean` and `exceedmax` columns). Recurrence is represented by the proportion of years containing a hazard (`prop` column). Variables are averaged across all the values within an area.
 ```{r Table - Severity x Risk DT, echo=F}
 renderDT({
-  datatable(dplyr::mutate_if(SxRtab(),is.numeric,~round(.,2)),
+  datatable(dplyr::mutate_if(SxRtab(),is.numeric,~round(.,3)),
             caption="Hazard recurrance x severity (means by geography)",
             extensions = 'Buttons',
             filter = "top",
@@ -1398,29 +1407,33 @@ HazMeth<-reactive({
 })
 ```
 
-##### Cropland exposure
-This table shows the percentage of a geographic area that is exposed to different hazards and hazard combinations. The table presents the total area in km2 of a geography (`Total.Area`), the percentage of the area that is cropland (`Crop.Perc` column), the human rural population in millions within this cropland area (`Pop` column), the human population in millions and as a percentage exposed to any hazard (`Pop.Risk` and `Pop.Perc` columns), and the percentage of the total area that is exposed to specific hazards (columns named with hazards). Note hazards are masked to cropland extent and sum to percentage of the area that is cropland.
-```{r Analysis - Subset data PopCrop,echo=F}
-
+```{r Table - create summary function,echo=F}
 PrepTable<-function(Data,Method,Scenario,AdminLevel,Geographies,A1,A2,Table){
   Data<-Data[[Method]][[Scenario]][[AdminLevel]][[Table]]
   if(AdminLevel=="Admin2"){
     setnames(Data,"Region","Admin2",skip_absent=T)
-    Geog<-data.table(terra::values(Geographies))[,list(NAME_1,NAME_2)]
+    Geog<-unique(data.table(terra::values(Geographies))[,list(NAME_1,NAME_2)])
     names(Geog)<-c("Admin1","Admin2")
-    Data<-merge(Data,Geog,by="Admin2",all.x=T)
+    Data[,Admin1:=Geog[match(Data$Admin2,Admin2),Admin1]]
     Data<-Data[Admin2 %in% A2]
   }else{
     setnames(Data,"Region","Admin1",skip_absent=T)
     Data<-Data[Admin1 %in% A1]
     if("Hazard" %in% colnames(Data)){
-      Data<-Data[,list(Area=sum(Area,na.rm=T)),by=list(Admin1,Crop,Hazard)]
+      Data<-Data[,list(VoP=sum(VoP,na.rm=T)),by=list(Admin1,Crop,Hazard)]
     }
   }
   
   Data
   
 }
+```
+
+##### Cropland exposure
+This table shows the percentage of a geographic area that is exposed to different hazards and hazard combinations. The table presents the total area in km2 of a geography (`Total.Area`), the percentage of the area that is cropland (`Crop.Perc` column), the human rural population in millions within this cropland area (`Pop` column), the human population in millions and as a percentage exposed to any hazard (`Pop.Risk` and `Pop.Perc` columns), and the percentage of the total area that is exposed to specific hazards (columns named with hazards). Note hazards are masked to cropland extent and sum to percentage of the area that is cropland.
+```{r Analysis - Subset data PopCrop,echo=F}
+
+
 
 DT_Data<-reactive({
   PrepTable(Data=HazXRegion(),
@@ -1436,7 +1449,7 @@ DT_Data<-reactive({
 
 ```{r Analysis - Display DT PopCrop,echo=F}
 renderDT({
-  datatable(DT_Data()[,Total.Area:=round(Total.Area,0)],
+  datatable(DT_Data()[,Total.Area:=round(Total.Area,3)],
             caption="Cropland hazards by geography",
             extensions = 'Buttons',
             filter = "top",
@@ -1449,7 +1462,7 @@ renderDT({
 ```
 
 ##### Hazard x crop x geography
-For each geography this table shows the mapSPAM harvested area of a crop (km2) that is exposed to a hazard or combination of hazards. Harvested area is the total crop area harvested within a year, if a location is harvested multiple times then the area is counted multiple times.
+For each geography this table shows the mapSPAM value of production of a crop (international USD) that is exposed to a hazard or combination of hazards.
 ```{r Table - SPAM subset data,echo=F}
 DT_Data2<-reactive({
   PrepTable(Data=HazXRegion(),
@@ -1459,7 +1472,7 @@ DT_Data2<-reactive({
                    Geographies=Geographies,
                    A1=input$Admin1,
                    A2=input$Admin2,
-                   Table="SPAM")[,Area:=round(Area/100,2)]
+                   Table="SPAM")[,VoP:=round(VoP/100,1)]
 })
 
 renderDT({
@@ -1480,9 +1493,9 @@ renderDT({
 :::
 :::{}
 ```{r Table -  Min Area, echo=F}
-numericInput(inputId="MinArea",
-             label="Min crop area (km2)", 
-             value=50,
+numericInput(inputId="MinVoP",
+             label="Min VoP (Int$)", 
+             value=1,
              min=0,
              max=100000,
              step=50,
@@ -1495,12 +1508,12 @@ numericInput(inputId="MinArea",
 renderDT({
   datatable(if(input$MakeWide=="Yes"){
     if(AdminLevel()=="Admin2"){
-      dcast(DT_Data2()[Area>input$MinArea,Area:=round(Area,0)],Admin1+Admin2+Crop~Hazard,value.var="Area")
+      dcast(DT_Data2()[VoP>input$MinVoP,VoP:=round(VoP,1)],Admin1+Admin2+Crop~Hazard,value.var="VoP")
     }else{
-      dcast(DT_Data2()[Area>input$MinArea,Area:=round(Area,0)],Admin1+Crop~Hazard,value.var="Area") 
+      dcast(DT_Data2()[VoP>input$MinVoP,VoP:=round(VoP,1)],Admin1+Crop~Hazard,value.var="VoP") 
     }
     }else{
-      DT_Data2()[,Area:=round(Area,0)]},
+      DT_Data2()[,VoP:=round(VoP,1)]},
             caption="Cropland hazards by geography",
             extensions = 'Buttons',
             filter = "top",
