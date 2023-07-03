@@ -1,43 +1,52 @@
 Fullname,Code
-wheat,whea
-rice,rice
-maize,maiz
+arabica coffee,acof
+banana,bana
 barley,barl
+bean,bean
+cassava,cass
+chickpea,chic
+coconut,cnut
+cocoa,coco
+coffee,coff
+cotton,cott
+cowpea,cowp
+fruit,fruit
+groundnut,grou
+lentil,lent
+maize,maiz
+millet,mill
+other cereals,ocer
+other fibre crops,ofib
+oil crops,oilc
+oilpalm,oilp
+other oil crops,ooil
+other pulses,opul
+other roots,orts
+pigeonpea,pige
+plantain,plnt
 pearl millet,pmil
+potato,pota
+rapeseed,rape
+robusta coffee,rcof
+rest of crops,rest
+rice,rice
+roots,root
+sesameseed,sesa
 small millet,smil
 sorghum,sorg
-other cereals,ocer
-potato,pota
-sweet potato,swpo
-yams,yams
-cassava,cass
-other roots,orts
-bean,bean
-chickpea,chic
-cowpea,cowp
-pigeonpea,pige
-lentil,lent
-other pulses,opul
 soybean,soyb
-groundnut,grou
-coconut,cnut
-oilpalm,oilp
-sunflower,sunf
-rapeseed,rape
-sesameseed,sesa
-other oil crops,ooil
-sugarcane,sugc
 sugarbeet,sugb
-cotton,cott
-other fibre crops,ofib
-arabica coffee,acof
-robusta coffee,rcof
-cocoa,coco
+sugarcane,sugc
+sunflower,sunf
+sweet potato,swpo
 tea,teas
-tobacco,toba
-banana,bana
-plantain,plnt
-tropical fruit,trof
 temperate fruit,temf
+tobacco,toba
+tropical fruit,trof
 vegetables,vege
-rest of crops,rest
+wheat,whea
+yams,yams
+banana and plantain,banpl
+cereals,cere
+pulses,puls
+total,total

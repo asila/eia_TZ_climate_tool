@@ -1,5 +1,5 @@
 ---
-title: "EiA TZ GCF Prioritization"
+title: "EiA GCF Prioritization"
 author: "Peter Steward, Todd Rosenstock, Ani Ghosh"
 date: "09/06/2022"
 output: html_document
@@ -26,7 +26,8 @@ options(scipen = 999)
 
 if(!require("pacman", character.only = TRUE)){install.packages("pacman",dependencies = T)}
 
-required.packages <- c("data.table",
+required.packages <- c("countrycode",
+                       "data.table",
                        "devtools",
                        "DT",
                        "MetBrewer",
@@ -41,18 +42,45 @@ required.packages <- c("data.table",
 
 pacman::p_load(char=required.packages,install = T,character.only = T)
 ```
+## EiA Climate Prioritization Tool {.tabset .tabset-fade .tabset-pills}
+```{r Choose country,echo=F}
+country_zips<-data.table(filepath=list.files("Data",".zip",full.names = T))
+country_zips [,iso3c:=gsub(".zip|Data/","",country_zips$filepath)]
 
-```{r Set save directory for analyses, echo=F}
-SaveDir<-"Analysis"
-if(!dir.exists(SaveDir)){
-  dir.create(SaveDir)
-}
+country_zips[,Country:=countrycode::countrycode(iso3c, origin = 'iso3c', destination = 'country.name')]
+
+selectInput(inputId="country_choice", 
+              label=NULL,
+              choices = country_zips$Country,
+              selected = "Tanzania",
+              multiple = F, 
+              width="240px")
+
+country_dir<-reactive({
+  paste0("Data/", country_zips[Country==input$country_choice,iso3c])
+  })
+
+reactive({
+  if(!dir.exists(country_dir())){
+    dir.create(country_dir())
+    unzip(zipfile=country_zips[Country==input$country_choice,filepath],exdir=country_dir(),junkpaths=T)
+  }
+})
+
+SaveDir<-reactive({
+  paste0(country_dir(),"/Analysis")
+  })
+
+reactive({
+  if(!dir.exists(SaveDir())){
+    dir.create(SaveDir())
+  }
+})
+
 ```
 
-## EiA Tanzania GCF Proposal Climate Prioritization Tool {.tabset .tabset-fade .tabset-pills}
 
 ```{r Hazards - load meta data and class breaks,echo=F}
-hazard_dir<-"Data/atlas_hazards"
 hazards<-c("NDD","NTx40","HSM_NTx35","HSH_max","THI_max","NDWS","TAI","NDWL0")
 haz_meta<-data.table::fread("./Data/atlas_hazards/metadata.csv")
 haz_class<-fread("./Data/atlas_hazards/classes.csv")
@@ -452,7 +480,7 @@ numericInput(inputId="PropThreshold",
 
 ```{r Future -  Choose scenario, echo=F}
   selectInput(inputId="Future", 
-              label="Choose future ccenario",
+              label="Choose future scenario",
               choices =  paste0(Scenarios$Scenario[-1],"-",Scenarios$Time),
               selected =  paste0(Scenarios$Scenario[-1],"-",Scenarios$Time),
               multiple = F, 
@@ -467,79 +495,119 @@ numericInput(inputId="PropThreshold",
 ### Data
 Load admin areas:
 ```{r Dataset - load regions}
-Geographies<-terra::vect("./Data/admin_units/gadm41_TZA_2.shp")
-Geographies<-terra::aggregate(Geographies,by="NAME_2")
+Geographies<-reactive({
+  terra::aggregate(terra::vect(grep("_2.shp",list.files(country_dir(),full.names = T),value = T)),by="NAME_2")
+})
 
 # Which units are lakes?
-Geographies$NAME_2[grep("Lake ",Geographies$NAME_2)]
+#Geographies$NAME_2[grep("Lake ",Geographies$NAME_2)]
 
-renderPlot({terra::plot(Geographies)})
+renderPlot({terra::plot(Geographies())})
 ```
 Load cropland extent data (source: https://glad.umd.edu/dataset/croplands)
 ```{r Dataset - Load global crop land extent}
-Cropland<-terra::crop(terra::mask(terra::rast("Data/Global_cropland_3km_2019.tif"),Geographies),Geographies)
+Cropland1<-reactive({
+  terra::crop(terra::mask(terra::rast("Data/Global_cropland_3km_2019.tif"),Geographies()),Geographies())
+})
 
 # Convert % to km2
-CroplandSize<-terra::cellSize(Cropland,unit="km")
-Cropland<-(Cropland/100)*CroplandSize
+CroplandSize<-reactive({terra::cellSize(Cropland1(),unit="km")})
 
-names(Cropland)<-"Cropland_Area"
-renderPlot({terra::plot(Cropland)})
-
+Cropland<-reactive({
+  X<-(Cropland1()/100)*CroplandSize()
+  names(X)<-"Cropland_Area"
+  X
+  })
+renderPlot({terra::plot(Cropland())})
 ```
+
 Load human population data:
 ```{r Dataset - Load population}
-TotalPop<-terra::crop(terra::mask(terra::rast("Data/cell5m_ruralpop_2020_v3.tif"),Geographies),Geographies)
-names(TotalPop)<-"TotalPop"
-renderPlot({terra::plot(TotalPop)})
+TotalPop<-reactive({
+  X<-terra::crop(terra::mask(terra::rast("Data/cell5m_ruralpop_2020_v3.tif"),Geographies()),Geographies())
+  names(X)<-"TotalPop"
+  X
+})
+
+renderPlot({terra::plot(TotalPop())})
 ```
 Load mapSPAM data:
 ```{r Dataset - mapSPAM}
-SPAM<-terra::rast("Data/mapspam/mapspam_crops.tif")
-SPAM<-terra::mask(terra::crop(SPAM,Geographies),Geographies)
-renderPlot({terra::plot(SPAM)})
+
+spam_files<-c("vop_total","production","harvested_area")
+
+SPAM<-reactive({
+  SPAM<-terra::rast(grep(paste0(spam_files,collapse="|"),list.files(country_dir(),".tif",full.names = T),value=T))
+  names(SPAM)<-paste0(names(SPAM),"-",rep(gsub(".tif","",grep("tif",unlist(tstrsplit(sources(SPAM),"/")),value=T)),each=terra::nlyr(SPAM)/length(spam_files)))
+  SPAM
+  })
+
+renderPlot({terra::plot(SPAM())})
+
 ```
 Process MapSPAM data:
 ```{r Analysis - Process MapSPAM,eval=T}
-Codes<-data.table::fread("Data/mapspam/SpamCodes.csv")
+ms_codes<-data.table::fread("Data/SpamCodes.csv")
 
-# This chunk creates tables that rank crops according to their MapSPAM area within regions. It is not currently used in this script but is useful when select which crops to disply in waffle plots
+# This chunk creates tables that rank crops according to their MapSPAM area within regions. It is not currently used in this script but is useful when select which crops to display in waffle plots
 
-if(!file.exists("Data/mapspam/SPAMareas1.csv")){
-
-# Run SPAMbyRegion.R to generate the file below
-MinArea<-100 #ha
-# Read in summary of crop areas by region, remove crops with small areas
- 
-
-GeogRast<-terra::rasterize(Geographies,SPAM,field="NAME_2")
+reactive({
+  if(!dir.exists(paste0(country_dir(),"/mapspam"))){
+    dir.create(paste0(country_dir(),"/mapspam"))
+  }
+})
 
 
-SPAMareas2<-data.table(terra::zonal(SPAM,GeogRast,"sum",na.rm=T))
-SPAMareas2<-data.table::melt(SPAMareas2,id.vars = "NAME_2",variable.name = "Crop",value.name = "Area")
-SPAMareas2<-merge(SPAMareas2,data.table(values(Geographies))[,list(NAME_1,NAME_2)],by="NAME_2",all.x=T)
+ms_dirs<-reactive({
+  c(paste0(country_dir(),"/mapspam/SPAMareas1.csv"),paste0(country_dir(),"/mapspam/SPAMareas2.csv"))
+})
 
-setnames(SPAMareas2,c("NAME_2","NAME_1"),c("Admin2","Admin1"))
+reactive({
+  if(!file.exists(ms_dirs()[1])){
+  
+  # Run SPAMbyRegion.R to generate the file below
+  MinArea<-100 #ha
+  # Read in summary of crop areas by region, remove crops with small areas
+   
+  GeogRast<-terra::rasterize(Geographies(),SPAM(),field="NAME_2")
+  
+  SPAMareas2<-data.table(terra::zonal(SPAM(),GeogRast,"sum",na.rm=T))
+  SPAMareas2<-data.table::melt(SPAMareas2,id.vars = "NAME_2",variable.name = "Crop",value.name = "Area")
+  SPAMareas2<-merge(SPAMareas2,data.table(values(Geographies()))[,list(NAME_1,NAME_2)],by="NAME_2",all.x=T)
+  
+  setnames(SPAMareas2,c("NAME_2","NAME_1"),c("Admin2","Admin1"))
+  
+  SPAMareas1<-SPAMareas2[order(Admin2,Area,decreasing = T)
+                 ][,Rank:=1:.N,by=Admin2
+                   ][Area==0|is.na(Area),Rank:=NA
+                     ][,Label:=paste(c(Admin2,Crop,Rank),collapse = "-"),by=list(Admin2,Crop,Rank)]
+  
+  SPAMareas1<-SPAMareas1[,list(Area=sum(Area,na.rm = T)),by=list(Admin1,Crop)
+                  ][order(Admin1,Area,decreasing = T)
+                    ][,Rank:=1:.N,by=Admin1
+                      ][Area==0|is.na(Area),Rank:=NA
+                        ][,Label:=paste(c(Admin1,Crop,Rank),collapse = "-"),by=list(Admin1,Crop,Rank)]
+  
+SPAMareas1[,Variable:=unlist(tstrsplit(Crop,"-",keep=2))
+           ][,Crop:=unlist(tstrsplit(Crop,"-",keep=1))
+             ][Variable=="production",Unit:="kg"
+               ][Variable=="harvested_area",Unit:="ha"
+                 ][Variable=="vop_total",Unit:="I$"]
 
+SPAMareas2[,Variable:=unlist(tstrsplit(Crop,"-",keep=2))
+           ][,Crop:=unlist(tstrsplit(Crop,"-",keep=1))
+             ][Variable=="production",Unit:="kg"
+               ][Variable=="harvested_area",Unit:="ha"
+                 ][Variable=="vop_total",Unit:="I$"]
+  
+  data.table::fwrite(SPAMareas2,file=ms_dirs()[2])
+  data.table::fwrite(SPAMareas1,file=ms_dirs()[1])
+  
+  }
+})
 
-SPAMareas1<-SPAMareas2[order(Admin2,Area,decreasing = T)
-               ][,Rank:=1:.N,by=Admin2
-                 ][Area==0|is.na(Area),Rank:=NA
-                   ][,Label:=paste(c(Admin2,Crop,Rank),collapse = "-"),by=list(Admin2,Crop,Rank)]
-
-SPAMareas1<-SPAMareas1[,list(Area=sum(Area,na.rm = T)),by=list(Admin1,Crop)
-                ][order(Admin1,Area,decreasing = T)
-                  ][,Rank:=1:.N,by=Admin1
-                    ][Area==0|is.na(Area),Rank:=NA
-                      ][,Label:=paste(c(Admin1,Crop,Rank),collapse = "-"),by=list(Admin1,Crop,Rank)]
-
-data.table::fwrite(SPAMareas2,file="Data/mapspam/SPAMareas2.csv")
-data.table::fwrite(SPAMareas1,file="Data/mapspam/SPAMareas1.csv")
-
-}else{
-SPAMareas2<-data.table::fread("Data/mapspam/SPAMareas2.csv")
-SPAMareas1<-data.table::fread("Data/mapspam/SPAMareas1.csv")
-}
+SPAMareas2<-reactive({data.table::fread(ms_dirs()[1])})
+SPAMareas1<-reactive({data.table::fread(ms_dirs()[2])})
 
 ```
 ### View Analysis Code
@@ -661,7 +729,8 @@ ClassifyHazards<-function(Data){
 
 HazardWrapper<-function(Thresholds,FileName,SaveDir,PropThreshold,PropTDir,hazard_dir,Scenarios){
   Files<-list.files(hazard_dir,".tif",full.names = T)
-
+  Files<-Files[grepl("historical|ENSEMBLE",Files)]
+  
   Hazards<-lapply(1:nrow(Scenarios),FUN=function(j){
     for(i in 1:nrow(Thresholds)){
       if(F){
@@ -806,7 +875,7 @@ ExtractHaz<-function(Regions,Reg.Field,Hazard,HazTab,SPAM,Cropland,TotalPop){
   X[,Hazard:=Hazard-Region]
   X[,Region:=terra::values(Regions)[match(X$Region,Regions$Code),Reg.Field]]
   X[,Hazard:=HazTab[match(X$Hazard,Recode),Hazard]]
-  X<-data.table::melt(X,id.vars = c("Hazard","Region"),value.name = "VoP",variable.name = "Crop")
+  X<-data.table::melt(X,id.vars = c("Hazard","Region"),value.name = "Value",variable.name = "Crop")
 
   Y<-data.table(zonal(c(TotalPop,MaskedPop,Cropland),HAZ,fun=sum,na.rm=T))
   Y[,Region:=floor(Hazard/100)*100]
@@ -841,10 +910,10 @@ ExtractHaz<-function(Regions,Reg.Field,Hazard,HazTab,SPAM,Cropland,TotalPop){
 }
 
 HazXRegionWrapper<-function(SaveDir,FileName,SPAM,Geographies,HazComb,Cropland,TotalPop){
-SaveFile<-paste0(SaveDir,"/Tables-",FileName,".RData")
-if(!file.exists(SaveFile)){
-
-Geog1<-terra::aggregate(Geographies,"NAME_1")
+  SaveFile<-paste0(SaveDir,"/Tables-",FileName,".RData")
+  if(!file.exists(SaveFile)){
+  
+  Geog1<-terra::aggregate(Geographies,"NAME_1")
 
 HazXRegion<-lapply(1:length(HazComb),FUN=function(j){
   
@@ -912,10 +981,10 @@ Detect and classify hazards:
 Hazards<-reactive({
   HazardWrapper(Thresholds=Thresholds(),
                 FileName=FileName(),
-                SaveDir=SaveDir,
+                SaveDir=SaveDir(),
                 PropThreshold=input$PropThreshold,
                 PropTDir=">",
-                hazard_dir=hazard_dir,
+                hazard_dir= country_dir(),
                 Scenarios=Scenarios)
 })
 
@@ -927,7 +996,7 @@ Combine hazards into a single layer:
 ```{r Analysis -  Combine hazards}
 HazComb<-reactive({
   HazCombWrapper(Hazards=Hazards(),
-                 SaveDir=SaveDir,
+                 SaveDir=SaveDir(),
                  Scenarios=Scenarios,
                  FileName=FileName2(),
                  SelectedHaz = input$Analysis_Vars)
@@ -941,12 +1010,12 @@ renderPrint({names(HazComb()[[1]][[1]])})
 Summarize hazards by region and MapSPAM data:
 ```{r Analysis - Summarize hazards by region and crop}
 HazXRegion<-reactive({
-  HazXRegionWrapper(SaveDir=SaveDir,
+  HazXRegionWrapper(SaveDir=SaveDir(),
                     FileName=FileName2(),
-                    SPAM=terra::rast("Data/mapspam/mapspam_crops.tif"),
-                    Cropland=Cropland,
-                    TotalPop=TotalPop,
-                    Geographies=Geographies,
+                    SPAM=SPAM(),
+                    Cropland=Cropland(),
+                    TotalPop=TotalPop(),
+                    Geographies=Geographies(),
                     HazComb=HazComb())
 })
 
@@ -1004,9 +1073,9 @@ AdminLevel<-reactive({
 renderUI({
   checkboxGroupInput(inputId="Admin1", 
                      label="Select regions",
-                     choices = sort(unique(Geographies$NAME_1)),
+                     choices = sort(unique(Geographies()$NAME_1)),
                      selected = if(input$Admin1_Selection=="All"){
-                         sort(unique(Geographies$NAME_1))
+                         sort(unique(Geographies()$NAME_1))
                          }else{
                            if(input$Admin1_Selection=="None"){
                              NULL
@@ -1040,9 +1109,9 @@ conditionalPanel(
   renderUI({
     checkboxGroupInput(inputId="Admin2", 
                        label="",
-                       choices = sort(unique(Geographies$NAME_2[Geographies$NAME_1 %in% input$Admin1])),
+                       choices = sort(unique(Geographies()$NAME_2[Geographies()$NAME_1 %in% input$Admin1])),
                        selected = if(input$Selection=="All"){
-                         sort(unique(Geographies$NAME_2[Geographies$NAME_1 %in% input$Admin1]))
+                         sort(unique(Geographies()$NAME_2[Geographies()$NAME_1 %in% input$Admin1]))
                          }else{
                            if(input$Selection=="None"){
                              NULL
@@ -1186,9 +1255,9 @@ numericInput(inputId="Plot.Width",
 ```{r Set admin areas for extraction, echo=F}
 SubGeog<-reactive({
     if(input$AdminLevel1=="District"){
-      Geographies[Geographies$NAME_2 %in% input$Admin2,]
+      Geographies()[Geographies()$NAME_2 %in% input$Admin2,]
     }else{
-      Geographies[Geographies$NAME_1 %in% input$Admin1,]
+      Geographies()[Geographies()$NAME_1 %in% input$Admin1,]
     }
 })
 ```
@@ -1220,8 +1289,9 @@ HazPalCombProp<-reactive({PalFun(PalName=input$Palette,
                       Names=HazComb()[["PropHaz"]][[input$Future]][["Classes"]])
 })
 
-addGeog1<-function(){terra::plot(terra::aggregate(Geographies[Geographies$NAME_2 %in% input$Admin2,],by="NAME_1"),add=T,border="black",lwd=input$borderwidth)}
-addGeog2<-function(){terra::plot(Geographies[Geographies$NAME_2 %in% input$Admin2,],add=T,border="black",lwd=input$borderwidth)}
+
+addGeog1<-function(){terra::plot(terra::aggregate(SubGeog(),by="NAME_1"),add=T,border="black",lwd=input$borderwidth)}
+addGeog2<-function(){terra::plot(SubGeog(),add=T,border="black",lwd=input$borderwidth)}
 
 
 ```
@@ -1576,9 +1646,9 @@ SxRtabFun<-function(Hazards,Plot_Vars,ExtractBy){
 ```{r Create raster versions of admin areas,echo=F}
 SubGeog_rast<-reactive({
   if(input$AdminLevel1=="District"){
-    rasterize(Geographies,PlotHazards(),field="NAME_2")
+    rasterize(Geographies(),PlotHazards(),field="NAME_2")
     }else{
-      rasterize(Geographies,PlotHazards(),field="NAME_1")
+      rasterize(Geographies(),PlotHazards(),field="NAME_1")
       }
   })
 ```
@@ -1614,7 +1684,7 @@ SxRtab<-reactive({
 })
 ```
 
-This table present the intersection of hazard severity and recurrence for the selected geographic area. The `mean` column is the average value of the climate variable. Severity is represented by the mean  and max exceedance of hazard threshold (`exceedmean` and `exceedmax` columns). Recurrence is represented by the proportion of years containing a hazard (`prop` column). Variables are averaged across all the values within an area.
+This table presents the intersection of hazard severity and recurrence for the selected geographic area. The `mean` column is the average value of the climate variable. Severity is represented by the mean  and max exceedance of hazard threshold (`exceedmean` and `exceedmax` columns). Recurrence is represented by the proportion of years containing a hazard (`prop` column). Variables are averaged across all the values within an area.
 ```{r Table - Severity x Risk DT, echo=F}
 renderDT({
   datatable(dplyr::mutate_if(SxRtab(),is.numeric,~round(.,3)),
@@ -1631,14 +1701,20 @@ renderDT({
 
 #### Combined hazards
 ```{r Plot - Prepare combinations mean,echo=F}
-CombPlot_historic<-reactive({ terra::mask(
-      terra::crop(x = droplevels(HazComb()[["MeanHaz"]][["historic-historic"]][["RastReclass"]]), Geographies[Geographies$NAME_2 %in% input$Admin2,]),
-      Geographies[Geographies$NAME_2 %in% input$Admin2,])
+CombPlot_historic<-reactive({ 
+   X<-terra::mask(
+     terra::crop(x = HazComb()[["MeanHaz"]][["historic-historic"]][["RastReclass"]], SubGeog()),
+     SubGeog())
+      X<-droplevels(X)
+      X
   })
 
-CombPlot_future<-reactive({ terra::mask(
-      terra::crop(x = droplevels(HazComb()[["MeanHaz"]][[input$Future]][["RastReclass"]]), Geographies[Geographies$NAME_2 %in% input$Admin2,]),
-      Geographies[Geographies$NAME_2 %in% input$Admin2,])
+CombPlot_future<-reactive({ 
+  X<-terra::mask(
+      terra::crop(x = HazComb()[["MeanHaz"]][[input$Future]][["RastReclass"]], SubGeog()),
+      SubGeog())
+  X<-droplevels(X)
+  X
   })
 
 CombPlot_agree_mean<-reactive({
@@ -1670,7 +1746,7 @@ renderPrint({
 This plot shows the intersection of climate hazards classified using scenario means (average of all years).
 ```{r Plot - Plot combinations mean,echo=F}
 renderPlot({
-terra::plot(c(CombPlot()),
+terra::plot(CombPlot(),
             fun=if(input$AdminLevel1=="District"){addGeog2}else{addGeog1},
             cex.main = input$TextSize*1.2,
             plg=list(x=input$LegPos,cex = input$TextSize,ncol=input$LegCols),
@@ -1683,15 +1759,21 @@ terra::plot(c(CombPlot()),
 ```
 
 ```{r Plot - Prepare combinations prop,echo=F}
-CombPlotProp_historic<-reactive({ terra::mask(
-      terra::crop(x = HazComb()[["PropHaz"]][["historic-historic"]][["RastReclass"]], Geographies[Geographies$NAME_2 %in% input$Admin2,]),
-      Geographies[Geographies$NAME_2 %in% input$Admin2,]
-      )})
+CombPlotProp_historic<-reactive({ 
+  X<-terra::mask(
+    terra::crop(x = HazComb()[["PropHaz"]][["historic-historic"]][["RastReclass"]], SubGeog()),
+    SubGeog())
+  X<-droplevels(X)
+  X
+  })
 
-CombPlotProp_future<-reactive({ terra::mask(
-      terra::crop(x = HazComb()[["PropHaz"]][[input$Future]][["RastReclass"]], Geographies[Geographies$NAME_2 %in% input$Admin2,]),
-      Geographies[Geographies$NAME_2 %in% input$Admin2,]
-      )})
+CombPlotProp_future<-reactive({ 
+  X<-terra::mask(
+    terra::crop(x = HazComb()[["PropHaz"]][[input$Future]][["RastReclass"]], SubGeog()),
+    SubGeog())
+    X<-droplevels(X)
+    X
+    })
 
 renderPrint({
   if(all(levels(CombPlotProp_historic()[,2]==levels(CombPlotProp_future()[,2])))){
@@ -1782,7 +1864,7 @@ PrepTable<-function(Data,Method,Scenario,AdminLevel,Geographies,A1,A2,Table){
     setnames(Data,"Region","Admin1",skip_absent=T)
     Data<-Data[Admin1 %in% A1]
     if("Hazard" %in% colnames(Data)){
-      Data<-Data[,list(VoP=sum(VoP,na.rm=T)),by=list(Admin1,Crop,Hazard)]
+      Data<-Data[,list(Value=sum(Value,na.rm=T)),by=list(Admin1,Crop,Hazard)]
     }
   }
   
@@ -1799,7 +1881,7 @@ DT_Data_historic<-reactive({
                    Method=HazMeth(),
                    Scenario="historic-historic",
                    AdminLevel=AdminLevel(),
-                   Geographies=Geographies,
+                   Geographies=Geographies(),
                    A1=input$Admin1,
                    A2=input$Admin2,
                    Table="CropPop")[,Scenario:="historic"]
@@ -1810,7 +1892,7 @@ DT_Data_future<-reactive({
              Method=HazMeth(),
              Scenario=input$Future,
              AdminLevel=AdminLevel(),
-             Geographies=Geographies,
+             Geographies=Geographies(),
              A1=input$Admin1,
              A2=input$Admin2,
              Table="CropPop")[,Scenario:=input$Future]
@@ -1852,28 +1934,32 @@ renderDT({
 ```
 
 ##### Hazard x crop x geography
+
+**Tables**  
 For each geography this table shows the mapSPAM value of production of a crop (international USD) that is exposed to a hazard or combination of hazards.
 ```{r Table - SPAM subset data,echo=F}
 DT_Data2_historic<-reactive({
-  PrepTable(Data=HazXRegion(),
+  X<-PrepTable(Data=HazXRegion(),
                    Method=HazMeth(),
                    Scenario="historic-historic",
                    AdminLevel=AdminLevel(),
-                   Geographies=Geographies,
+                   Geographies=Geographies(),
                    A1=input$Admin1,
                    A2=input$Admin2,
-                   Table="SPAM")[,VoP:=round(VoP,1)][,Scenario:="historic"]
+                   Table="SPAM")[,Value:=round(Value,1)
+                                 ][,Scenario:="historic"]
 })
 
 DT_Data2_future<-reactive({
-  PrepTable(Data=HazXRegion(),
+  X<-PrepTable(Data=HazXRegion(),
                    Method=HazMeth(),
                    Scenario=input$Future,
                    AdminLevel=AdminLevel(),
-                   Geographies=Geographies,
+                   Geographies=Geographies(),
                    A1=input$Admin1,
                    A2=input$Admin2,
-                   Table="SPAM")[,VoP:=round(VoP,1)][,Scenario:=input$Future]
+                   Table="SPAM")[,Value:=round(Value,1)
+                                 ][,Scenario:=input$Future]
 })
 
 DT2_diff_fun<-function(historic,future){
@@ -1887,21 +1973,25 @@ DT2_diff_fun<-function(historic,future){
   setnames(merged,"future",future$Scenario[1])
   
   if("Admin2" %in% cols_out){
-    merged<-melt(merged,id.vars=c("Admin1","Admin2","Crop","Hazard"),variable.name = "Scenario",value.name = "VoP")
+    merged<-melt(merged,id.vars=c("Admin1","Admin2","Crop","Hazard"),variable.name = "Scenario",value.name = "Value")
   }else{
-    merged<-melt(merged,id.vars=c("Admin1","Crop","Hazard"),variable.name = "Scenario",value.name = "VoP")
+    merged<-melt(merged,id.vars=c("Admin1","Crop","Hazard"),variable.name = "Scenario",value.name = "Value")
   }
-  
-  merged[,Crop:=gsub(" _vop","",Crop)]
   
   return(merged)
 }
 
 
 DT_Data2<-reactive({
-  DT2_diff_fun(historic=DT_Data2_historic(),future=DT_Data2_future())
+  X<-DT2_diff_fun(historic=DT_Data2_historic(),future=DT_Data2_future())[,Variable:=unlist(tstrsplit(Crop,"-",keep=2))
+                                                                      ][,Crop:=unlist(tstrsplit(Crop,"-",keep=1))
+                                                                        ][Variable=="production",Unit:="kg"
+                                                                          ][Variable=="harvested_area",Unit:="ha"
+                                                                            ][Variable=="vop_total",Unit:="I$"]
+  
+  X<-X[,Crop:=ms_codes$Fullname[match(trimws(tolower(X$Crop)),ms_codes$Code)]]
+  X
 })
-
 ```
 
 ```{r Table - SPAM subset render DT,echo=F}
@@ -1946,12 +2036,12 @@ numericInput(inputId="MinVoP",
 renderDT({
   datatable(if(input$MakeWide=="Yes"){
     if(AdminLevel()=="Admin2"){
-      dcast(DT_Data2()[VoP>input$MinVoP,VoP:=round(VoP,1)],Admin1+Admin2+Scenario+Crop~Hazard,value.var="VoP")
+      dcast(DT_Data2()[Variable=="vop_total"][Value>input$MinVoP,Value:=round(Value,1)],Admin1+Admin2+Scenario+Crop+Variable+Unit~Hazard,value.var="Value")
     }else{
-      dcast(DT_Data2()[VoP>input$MinVoP,VoP:=round(VoP,1)],Admin1+Scenario+Crop~Hazard,value.var="VoP") 
+      dcast(DT_Data2()[Variable=="vop_total"][Value>input$MinVoP,Value:=round(Value,1)],Admin1+Scenario+Crop+Variable+Unit~Hazard,value.var="Value") 
     }
     }else{
-      DT_Data2()[,VoP:=round(VoP,1)]},
+      DT_Data2()[Variable=="vop_total"][Value>input$MinVoP,Value:=round(Value,1)]},
             caption="Cropland hazards by geography",
             extensions = 'Buttons',
             filter = "top",
@@ -1960,5 +2050,63 @@ renderDT({
                            lengthMenu = list(c(10,25,50,-1),c(10,25,50,"All")))) 
   
 })
+
+```
+
+**Maps**
+
+:::: {style="display: flex;"}
+:::{}
+```{r Plot - Choose SPAM variable,echo=F}
+  selectInput(inputId="spam_variable", 
+              label="Choose spam variable to display",
+              choices = spam_files,
+              selected=spam_files[1], 
+              multiple = F, 
+              width="280px")
+
+SPAM_plot<-reactive({
+  X<-terra::mask(terra::crop(SPAM(),SubGeog()),SubGeog())
+  X<-X[[grepl(input$spam_variable,names(X))]]
+  names(X)<-tolower(unlist(tstrsplit(names(X),"-",keep=1)))
+  names(X)<-ms_codes[match(names(X),Code),Fullname]
+  X
+  })
+
+Vals<-reactive({
+  Vals<-unlist(lapply(1:nlyr(SPAM_plot()),FUN=function(i){sum(SPAM_plot()[[i]][],na.rm=T)}))
+  names(Vals)<-names(SPAM_plot())
+  Vals<-sort(Vals,decreasing=T)
+})
+
+
+```
+:::
+:::{}
+```{r Plot - Choose SPAM Crops,echo=F}
+renderUI({
+  checkboxGroupInput(inputId="spam_crops", 
+              label="Crops to include in plot",
+              choices = names(Vals()),
+              selected = names(Vals())[1:9],
+              inline=T)
+})
+
+
+SPAM_plot2<-reactive({
+  SPAM_plot()[[grep(paste(input$spam_crops,collapse="|"),names(SPAM_plot()))]]
+})
+```
+:::
+::::
+
+```{r Plot - MAPspam,echo=F}
+renderPlot({
+terra::plot(SPAM_plot2(),
+            fun=if(input$AdminLevel1=="District"){addGeog2}else{addGeog1},
+            cex.main = input$TextSize*1.2,
+            plg=list(x=input$LegPos,cex = input$TextSize,ncol=input$LegCols))
+
+},height=Plot.Height, width=Plot.Width)
 
 ```
