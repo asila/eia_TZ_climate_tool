@@ -2860,6 +2860,7 @@ renderDT({
 
 
 ### To Do List
+1) Errors from multiple models not just ensembles
 2) Exposure summary tab for crops (done), population, production  
 4) Hazard Index - normalize severity and recurrence to create a relative index? the relative component may be problematic as it could over-emphasize minor hazards  
 5) Vulnerability module - brayden  
@@ -2874,6 +2875,9 @@ renderDT({
 14) Ordination of hazards
 15) Scale font size of terra::plots (axis & legend)
 16) Sanky diagrams for flow from one hazard to another
+17) Admin0
+18) Anomaly approach
+19) Different baselines
 
 **Bugs**
 1) historic vs future plots should use the same legend scale
