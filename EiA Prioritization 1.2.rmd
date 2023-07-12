@@ -2860,26 +2860,28 @@ renderDT({
 
 
 ### To Do List
-1) Errors from multiple models not just ensembles
+1) Errors from multiple models not just ensembles  
 2) Exposure summary tab for crops (done), population, production  
 4) Hazard Index - normalize severity and recurrence to create a relative index? the relative component may be problematic as it could over-emphasize minor hazards  
 5) Vulnerability module - brayden  
 6) Suitability  
 7) Yield  
-8) Solutions
-9) Increase hazards classification options to include all classes, whilst retaining option to choose which class to move forward with.
-10) Box plots
-11) Plotting refinements
-12) Save plot options + edit labels options
-13) Refinement of handling of hazard cats can we include severity in categorical combinations
-14) Ordination of hazards
-15) Scale font size of terra::plots (axis & legend)
-16) Sanky diagrams for flow from one hazard to another
-17) Admin0
-18) Anomaly approach
-19) Different baselines
+8) Solutions  
+9) Increase hazards classification options to include all classes, whilst retaining option to choose which class to move forward with.  
+10) Box plots  
+11) Plotting refinements:  
+  11a) fix scaling issue with terra::plot  
+  11b) Save plot options + edit labels options  
+  11c) Scale font size of terra::plots (axis & legend)  
+  11d) Pallete (gg), line size (gg), add points (gg)  
+13) Refinement of handling of hazard cats can we include severity in categorical combinations  
+14) Ordination of hazards  
+16) Sanky diagrams for flow from one hazard to another  
+17) Admin0  
+18) Anomaly approach  
+19) Different baselines  
 
 **Bugs**
-1) historic vs future plots should use the same legend scale
-2) Recurrence - prop plots (at least for TAI) appear to show a categorical legend as well as a continuous legend
-3) Exposure summary - move plotting subsetting to plot only (so that the Table tab is not affected)
+1) historic vs future plots should use the same legend scale  
+2) Recurrence - prop plots (at least for TAI) appear to show a categorical legend as well as a continuous legend (update - seems to be an issue with with 0/1 plots)  
+3) Exposure summary - move plotting subsetting to plot only (so that the Table tab is not affected)  
